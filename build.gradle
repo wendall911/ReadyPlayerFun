@@ -1,0 +1,164 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+        maven {
+            name = 'gradle plugins'
+            url "https://plugins.gradle.org/m2/"
+        }
+        maven {
+            name = 'forge'
+            url = 'http://files.minecraftforge.net/maven'
+        }
+        maven {
+            name = 'sonatype'
+            url = 'https://oss.sonatype.org/content/repositories/snapshots/'
+        }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+        classpath 'gradle.plugin.se.bjurr.gitchangelog:git-changelog-gradle-plugin:1.55'
+    }
+}
+
+plugins {
+	id 'com.matthewprenger.cursegradle' version '1.2.0'
+}
+
+apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'se.bjurr.gitchangelog.git-changelog-gradle-plugin'
+
+// External properties
+ext.configFile = file 'build.properties'
+configFile.withReader {
+    // Load config.  It shall from now be referenced as simply config or project.config
+    def prop = new Properties()
+    prop.load(it)
+    project.ext.config = new ConfigSlurper().parse prop
+}
+
+group = 'com.github.wendall911.readyplayerfun'
+version = "${config.minecraft_version}-${config.mod_version}"
+archivesBaseName = "${config.mod_name}"
+def mcversion = "${config.minecraft_version}"
+def modid = "${config.modid}"
+
+repositories {
+}
+
+dependencies {
+}
+
+minecraft {
+    version = config.minecraft_version + '-' + config.forge_version
+    mappings = config.mappings
+    runDir = 'run'
+    replace '@MOD_NAME@', archivesBaseName
+    replace '@MODID@', modid
+    replace '@MOD_VERSION@', config.mod_version
+    replace '@FORGE_VERSION@', config.forge_version
+	if (project.hasProperty('keyFingerprint')) {
+		replace '@FINGERPRINT@', project.keyFingerprint
+	}
+    else {
+		replace '@FINGERPRINT@', ''
+    }
+    replaceIn 'ReadyPlayerFun.java'
+    useDepAts = true
+}
+
+def commonManifest = {
+    attributes 'FMLAT': 'readyplayerfun_at.cfg'
+}
+
+jar {
+    manifest commonManifest
+}
+
+task signJar(type: SignJar, dependsOn: reobfJar) {
+    onlyIf { // Skip the task if our secret data isn't available
+        project.hasProperty('keyStore')
+    }
+
+    keyStore = project.keyStore // This needs to be a path to the keystore file
+    alias = project.keyStoreAlias
+    storePass = project.keyStorePass
+    keyPass = project.keyStoreKeyPass
+    inputFile = jar.archivePath
+    outputFile = jar.archivePath
+}
+
+build.dependsOn signJar
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs += ['-Xlint:deprecation', '-Xlint:unchecked']
+}
+
+curseforge {
+    apiKey = project.rpfcurseApiKey
+    project {
+        id = project.rpfcurseId
+        changelog = file('build/libs/' + project.getName() + '-' + project.version + '-changelog.txt')
+        releaseType = config.cf_release_type
+        addGameVersion(config.minecraft_version)
+        mainArtifact(jar) {
+            relations {
+                optionalLibrary 'extended-days'
+                optionalLibrary 'serene-seasons'
+                optionalLibrary 'time-speed-mod'
+            }
+        }
+    }
+}
+
+tasks.curseforge.dependsOn build
+
+task changelog(type: se.bjurr.gitchangelog.plugin.gradle.GitChangelogTask) {
+	file = new File('build/libs/' + project.getName() + '-' + project.version + '-changelog.txt');
+    templateContent = file('files/templates/changelog.mustache').getText('UTF-8');
+	toRef = "${config.mod_version}";
+	fromRef = "${config.last_mod_version}";
+}
+
+tasks.build.dependsOn('changelog')
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allJava
+    from (sourceSets.main.output) {
+        include 'LICENSE'
+    }
+
+    classifier = 'src'
+}
+
+task deobfJar(type: Jar) {
+    from sourceSets.main.output
+
+    manifest commonManifest
+    classifier = 'deobf'
+}
+
+sourceSets {
+    main {
+        resources {
+            srcDir 'resources'
+        }   
+    }   
+}
+
+processResources {
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
+
+        // replaces
+        expand ([
+            'modid': modid,
+            'mod_version': version,
+            'minecraft_version': mcversion
+        ])
+    }
+
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+    }
+}
