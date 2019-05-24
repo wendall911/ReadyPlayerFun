@@ -1,0 +1,6 @@
+# Messages
+readyplayerfun.message.unpaused=Welcome back! Server resumed after %s.
+
+# Configuration
+server=Server
+ENABLE_WELCOME_MESSAGE.tooltip=Show status message on first player login after server unpaused.
