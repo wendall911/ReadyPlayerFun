@@ -29,6 +29,7 @@ public class PlayerEventHandler {
     private boolean paused = false;
     private long worldTime;
     private int seasonCycleTicks;
+    private long checkTime = System.currentTimeMillis();
 
     @SideOnly(Side.SERVER)
     @SubscribeEvent
@@ -37,11 +38,11 @@ public class PlayerEventHandler {
             EntityPlayerMP player = (EntityPlayerMP) event.player;
             PlayerList playerList = FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList();
 
-            if(playerList.getCurrentPlayerCount() == 1 && paused) {
-                long duration = System.currentTimeMillis() - startPauseTime;
-                String durationString = DurationFormatUtils.formatDuration(duration, "H:mm:ss", true);
-
+            if (playerList.getCurrentPlayerCount() >= 1 && paused) {
                 if (ConfigHandler.server.ENABLE_WELCOME_MESSAGE) {
+                    long duration = System.currentTimeMillis() - startPauseTime;
+                    String durationString = DurationFormatUtils.formatDuration(duration, "H:mm:ss", true);
+
                     TextComponentTranslation msg = new TextComponentTranslation("readyplayerfun.message.unpaused", durationString);
                     player.sendMessage(msg);
                 }
@@ -57,7 +58,7 @@ public class PlayerEventHandler {
         PlayerList playerList = FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList();
         World world = FMLCommonHandler.instance().getMinecraftServerInstance().getEntityWorld();
 
-        if (playerList.getCurrentPlayerCount() == 1) {
+        if (playerList.getCurrentPlayerCount() <= 1) {
             startPauseTime = System.currentTimeMillis();
             worldTime = world.getWorldTime();
             paused = true;
@@ -65,24 +66,33 @@ public class PlayerEventHandler {
     }
 
     @SideOnly(Side.SERVER)
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onWorldTick(TickEvent.WorldTickEvent event) {
         World world = event.world;
+        long now = System.currentTimeMillis();
 
         if (world == null || world.provider == null || world.provider.getDimension() != 0) {
             return;
         }
-        else if (paused && event.phase == TickEvent.Phase.END && Loader.isModLoaded("sereneseasons")) {
-            SeasonSavedData savedData = SeasonHandler.getSeasonSavedData(world);
+        else if (paused && event.phase == TickEvent.Phase.START) {
+            if (Loader.isModLoaded("sereneseasons")) {
+                SeasonSavedData savedData = SeasonHandler.getSeasonSavedData(world);
 
-            savedData.seasonCycleTicks--;
+                savedData.seasonCycleTicks--;
+                savedData.markDirty();
+            }
 
-            savedData.markDirty();
+            if (world.getGameRules().getBoolean("doDaylightCycle")) {
+                world.setWorldTime(worldTime);
+            }
         }
-        else if (paused && event.phase == TickEvent.Phase.START
-                && world.getGameRules().getBoolean("doDaylightCycle")) {
-            world.setWorldTime(worldTime);
-
+        // If pause got into a bad state, check every second to make sure we resume.
+        if (paused && (now - checkTime) > 1000) {
+            PlayerList playerList = FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList();
+            checkTime = now;
+            if (playerList.getCurrentPlayerCount() >= 1) {
+                paused = false;
+            }
         }
     }
 
