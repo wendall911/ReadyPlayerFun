@@ -28,7 +28,7 @@ public class PlayerEventHandler {
     private long startPauseTime;
     private boolean paused = false;
     private long worldTime;
-	private int seasonCycleTicks;
+    private int seasonCycleTicks;
 
     @SideOnly(Side.SERVER)
     @SubscribeEvent
@@ -37,14 +37,14 @@ public class PlayerEventHandler {
             EntityPlayerMP player = (EntityPlayerMP) event.player;
             PlayerList playerList = FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList();
 
-            if (ConfigHandler.server.ENABLE_WELCOME_MESSAGE
-                    && playerList.getCurrentPlayerCount() == 1
-                    && paused) {
+            if(playerList.getCurrentPlayerCount() == 1 && paused) {
                 long duration = System.currentTimeMillis() - startPauseTime;
                 String durationString = DurationFormatUtils.formatDuration(duration, "H:mm:ss", true);
 
-                TextComponentTranslation msg = new TextComponentTranslation("readyplayerfun.message.unpaused", durationString);
-                player.sendMessage(msg);
+                if (ConfigHandler.server.ENABLE_WELCOME_MESSAGE) {
+                    TextComponentTranslation msg = new TextComponentTranslation("readyplayerfun.message.unpaused", durationString);
+                    player.sendMessage(msg);
+                }
 
                 paused = false;
             }
@@ -90,9 +90,9 @@ public class PlayerEventHandler {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onWorldLoad(WorldEvent.Load event) {
         World world = event.getWorld();
-		startPauseTime = System.currentTimeMillis();
-		worldTime = world.getWorldTime();
-		paused = true;
-	}
+        startPauseTime = System.currentTimeMillis();
+        worldTime = world.getWorldTime();
+        paused = true;
+    }
 
 }
