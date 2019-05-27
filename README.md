@@ -3,7 +3,7 @@
 ![Forge](https://img.shields.io/badge/Forge-14.23.4.2705+-green.svg?longCache=true&style=flat)
 ![MIT](https://img.shields.io/badge/license-MIT-blue.svg?longCache=true&style=flat)
 
-A Minecraft 1.12.2+ mod to designed to allow a server to remain running while time and seasons are paused.
+A Minecraft 1.12.2+ mod to designed to allow a server to remain running while time, weather and season are paused.
 
 Download latest (1.12.2):
 
