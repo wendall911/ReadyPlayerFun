@@ -19,7 +19,9 @@ import readyplayerfun.proxy.CommonProxy;
      version = ReadyPlayerFun.MOD_VERSION,
      name = ReadyPlayerFun.MOD_NAME,
      certificateFingerprint = "@FINGERPRINT@",
+     serverSideOnly = true,
      dependencies = "required-after:forge@[@FORGE_VERSION@,);",
+     acceptableRemoteVersions = "*",
      acceptedMinecraftVersions = "[@MC_VERSION@,)"
 )
 
