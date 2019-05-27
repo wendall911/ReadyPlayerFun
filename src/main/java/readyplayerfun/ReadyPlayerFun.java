@@ -31,7 +31,7 @@ public class ReadyPlayerFun {
     public static final String MOD_VERSION = "@MOD_VERSION@";
     public static final String MOD_NAME = "@MOD_NAME@";
 
-    @SidedProxy(clientSide = "readyplayerfun.proxy.ClientProxy", serverSide = "readyplayerfun.proxy.ServerProxy")
+    @SidedProxy(serverSide = "readyplayerfun.proxy.ServerProxy")
     public static CommonProxy proxy;
 
     @Mod.Instance
@@ -48,19 +48,6 @@ public class ReadyPlayerFun {
     public void preInit(FMLPreInitializationEvent event) {
         logger.info("Pre-init started");
         proxy.preInit(event);
-    }
-
-    @Mod.EventHandler
-    public void init(FMLInitializationEvent event) {
-        logger.info("Init started");
-        proxy.init(event);
-    }
-
-    @Mod.EventHandler
-    public void postInit(FMLPostInitializationEvent event) {
-        logger.info("Post-init started");
-        proxy.postInit(event);
-        logger.info("Finished Loading");
     }
 
 }

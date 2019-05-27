@@ -14,8 +14,6 @@ import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.Loader;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 
 import readyplayerfun.config.ConfigHandler;
 import readyplayerfun.ReadyPlayerFun;
@@ -37,7 +35,6 @@ public class PlayerEventHandler {
     private int rainTime;
     private int thunderTime;
 
-    @SideOnly(Side.SERVER)
     @SubscribeEvent
     public void onPlayerLogin(final PlayerEvent.PlayerLoggedInEvent event) {
         if (event.player instanceof EntityPlayerMP) {
@@ -60,7 +57,6 @@ public class PlayerEventHandler {
         }
     }
 
-    @SideOnly(Side.SERVER)
     @SubscribeEvent
     public void onPlayerLogout(final PlayerEvent.PlayerLoggedOutEvent event) {
         PlayerList playerList = FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList();
@@ -71,7 +67,6 @@ public class PlayerEventHandler {
         }
     }
 
-    @SideOnly(Side.SERVER)
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onWorldTick(TickEvent.WorldTickEvent event) {
         World world = event.world;
@@ -119,7 +114,6 @@ public class PlayerEventHandler {
         }
     }
 
-    @SideOnly(Side.SERVER)
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onWorldLoad(WorldEvent.Load event) {
         if (!worldLoaded) {
