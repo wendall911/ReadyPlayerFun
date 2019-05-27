@@ -5,6 +5,7 @@ import org.apache.commons.lang3.time.DurationFormatUtils;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.management.PlayerList;
 import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.world.storage.WorldInfo;
 import net.minecraft.world.World;
 
 import net.minecraftforge.event.world.WorldEvent;
@@ -39,14 +40,15 @@ public class PlayerEventHandler {
             PlayerList playerList = FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList();
 
             if (playerList.getCurrentPlayerCount() >= 1 && paused) {
-                if (ConfigHandler.server.ENABLE_WELCOME_MESSAGE) {
-                    long duration = System.currentTimeMillis() - startPauseTime;
-                    String durationString = DurationFormatUtils.formatDuration(duration, "H:mm:ss", true);
+                long duration = System.currentTimeMillis() - startPauseTime;
+                String durationString = DurationFormatUtils.formatDuration(duration, "H:mm:ss", true);
+                TextComponentTranslation msg = new TextComponentTranslation("readyplayerfun.message.unpaused", durationString);
 
-                    TextComponentTranslation msg = new TextComponentTranslation("readyplayerfun.message.unpaused", durationString);
+                ReadyPlayerFun.logger.info(msg);
+
+                if (ConfigHandler.server.ENABLE_WELCOME_MESSAGE) {
                     player.sendMessage(msg);
                 }
-                ReadyPlayerFun.logger.info(msg);
 
                 paused = false;
             }
@@ -60,10 +62,7 @@ public class PlayerEventHandler {
         World world = FMLCommonHandler.instance().getMinecraftServerInstance().getEntityWorld();
 
         if (playerList.getCurrentPlayerCount() <= 1) {
-            ReadyPlayerFun.logger.info("Pausing server onPlayerLogout");
-            startPauseTime = System.currentTimeMillis();
-            worldTime = world.getWorldTime();
-            paused = true;
+            pauseServer(world, "onPlayerLogout");
         }
     }
 
@@ -88,19 +87,17 @@ public class PlayerEventHandler {
                 world.setWorldTime(worldTime);
             }
         }
-        // If pause got into a bad state, check every second to make sure we resume.
+
+        // Check pause state and fix if incorrect.
         if ((now - checkTime) > 1000) {
             PlayerList playerList = FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList();
             checkTime = now;
             if (paused && playerList.getCurrentPlayerCount() >= 1) {
-                ReadyPlayerFun.logger.info("Pausing server onWorldTick");
+                ReadyPlayerFun.logger.info(String.format("Unpausing server %s", "onWorldTick"));
                 paused = false;
             }
             else if (!paused && playerList.getCurrentPlayerCount() <= 0) {
-                ReadyPlayerFun.logger.info("Unpausing server onWorldTick");
-                startPauseTime = System.currentTimeMillis();
-                worldTime = world.getWorldTime();
-                paused = true;
+                pauseServer(world, "onWorldTick");
             }
         }
     }
@@ -108,8 +105,11 @@ public class PlayerEventHandler {
     @SideOnly(Side.SERVER)
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onWorldLoad(WorldEvent.Load event) {
-        World world = event.getWorld();
-        ReadyPlayerFun.logger.info("Pausing server onWorldLoad");
+        pauseServer(event.getWorld(), "onWorldLoad");
+    }
+
+    private void pauseServer(World world, String ctx) {
+        ReadyPlayerFun.logger.info(String.format("Pausing server %s", ctx));
         startPauseTime = System.currentTimeMillis();
         worldTime = world.getWorldTime();
         paused = true;
