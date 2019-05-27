@@ -25,12 +25,17 @@ import sereneseasons.handler.season.SeasonHandler;
 
 public class PlayerEventHandler {
 
+    private boolean worldLoaded = false;
     private long startPauseTime;
     private boolean paused = false;
     private long worldTime;
     private int seasonCycleTicks;
     private long checkTime = System.currentTimeMillis();
+    private boolean raining = false;
+    private boolean thundering = false;
     private int weatherTime;
+    private int rainTime;
+    private int thunderTime;
 
     @SideOnly(Side.SERVER)
     @SubscribeEvent
@@ -62,7 +67,7 @@ public class PlayerEventHandler {
         World world = FMLCommonHandler.instance().getMinecraftServerInstance().getEntityWorld();
 
         if (playerList.getCurrentPlayerCount() <= 1) {
-            pauseServer(world, "onPlayerLogout");
+            pauseServer(world, "onPlayerLogout", 0);
         }
     }
 
@@ -87,7 +92,17 @@ public class PlayerEventHandler {
                 world.setWorldTime(worldTime);
             }
 
-            world.getWorldInfo().setCleanWeatherTime(weatherTime);
+            if (raining) {
+                world.getWorldInfo().setRaining(raining);
+                world.getWorldInfo().setRainTime(rainTime);
+                if (thundering) {
+                    world.getWorldInfo().setThundering(thundering);
+                    world.getWorldInfo().setThunderTime(thunderTime);
+                }
+            }
+            else {
+                world.getWorldInfo().setCleanWeatherTime(weatherTime);
+            }
         }
 
         // Check pause state and fix if incorrect.
@@ -99,7 +114,7 @@ public class PlayerEventHandler {
                 paused = false;
             }
             else if (!paused && playerList.getCurrentPlayerCount() <= 0) {
-                pauseServer(world, "onWorldTick");
+                pauseServer(world, "onWorldTick", 0);
             }
         }
     }
@@ -107,14 +122,31 @@ public class PlayerEventHandler {
     @SideOnly(Side.SERVER)
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onWorldLoad(WorldEvent.Load event) {
-        pauseServer(event.getWorld(), "onWorldLoad");
+        if (!worldLoaded) {
+            pauseServer(event.getWorld(), "onWorldLoad", 1);
+        }
+        worldLoaded = true;
     }
 
-    private void pauseServer(World world, String ctx) {
+    private void pauseServer(World world, String ctx, int pad) {
         ReadyPlayerFun.logger.info(String.format("Pausing server %s", ctx));
         startPauseTime = System.currentTimeMillis();
-        worldTime = world.getWorldTime();
-        weatherTime = world.getWorldInfo().getCleanWeatherTime();
+        worldTime = world.getWorldTime() + pad;
+        raining = world.getWorldInfo().isRaining();
+
+        if (raining) {
+            thundering = world.getWorldInfo().isThundering();
+            rainTime = world.getWorldInfo().getRainTime() + pad;
+            if (thundering) {
+                thunderTime = world.getWorldInfo().getThunderTime() + pad;
+            }
+        }
+        else {
+            weatherTime = world.getWorldInfo().getCleanWeatherTime() + pad;
+        }
+        ReadyPlayerFun.logger.debug(String.format("Raining: %s rainTime: %d, thundering: %s, thunderTime %d, weatherTime: %d",
+                    raining, rainTime, thundering, thunderTime, weatherTime));
+
         paused = true;
     }
 
