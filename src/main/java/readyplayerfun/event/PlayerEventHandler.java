@@ -46,6 +46,7 @@ public class PlayerEventHandler {
                     TextComponentTranslation msg = new TextComponentTranslation("readyplayerfun.message.unpaused", durationString);
                     player.sendMessage(msg);
                 }
+                ReadyPlayerFun.logger.info(msg);
 
                 paused = false;
             }
@@ -59,6 +60,7 @@ public class PlayerEventHandler {
         World world = FMLCommonHandler.instance().getMinecraftServerInstance().getEntityWorld();
 
         if (playerList.getCurrentPlayerCount() <= 1) {
+            ReadyPlayerFun.logger.info("Pausing server onPlayerLogout");
             startPauseTime = System.currentTimeMillis();
             worldTime = world.getWorldTime();
             paused = true;
@@ -87,11 +89,18 @@ public class PlayerEventHandler {
             }
         }
         // If pause got into a bad state, check every second to make sure we resume.
-        if (paused && (now - checkTime) > 1000) {
+        if ((now - checkTime) > 1000) {
             PlayerList playerList = FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList();
             checkTime = now;
-            if (playerList.getCurrentPlayerCount() >= 1) {
+            if (paused && playerList.getCurrentPlayerCount() >= 1) {
+                ReadyPlayerFun.logger.info("Pausing server onWorldTick");
                 paused = false;
+            }
+            else if (!paused && playerList.getCurrentPlayerCount() <= 0) {
+                ReadyPlayerFun.logger.info("Unpausing server onWorldTick");
+                startPauseTime = System.currentTimeMillis();
+                worldTime = world.getWorldTime();
+                paused = true;
             }
         }
     }
@@ -100,6 +109,7 @@ public class PlayerEventHandler {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onWorldLoad(WorldEvent.Load event) {
         World world = event.getWorld();
+        ReadyPlayerFun.logger.info("Pausing server onWorldLoad");
         startPauseTime = System.currentTimeMillis();
         worldTime = world.getWorldTime();
         paused = true;
