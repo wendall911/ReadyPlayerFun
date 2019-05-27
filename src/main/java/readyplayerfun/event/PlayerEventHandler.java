@@ -5,7 +5,6 @@ import org.apache.commons.lang3.time.DurationFormatUtils;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.management.PlayerList;
 import net.minecraft.util.text.TextComponentTranslation;
-import net.minecraft.world.storage.WorldInfo;
 import net.minecraft.world.World;
 
 import net.minecraftforge.event.world.WorldEvent;
@@ -31,6 +30,7 @@ public class PlayerEventHandler {
     private long worldTime;
     private int seasonCycleTicks;
     private long checkTime = System.currentTimeMillis();
+    private int weatherTime;
 
     @SideOnly(Side.SERVER)
     @SubscribeEvent
@@ -86,6 +86,8 @@ public class PlayerEventHandler {
             if (world.getGameRules().getBoolean("doDaylightCycle")) {
                 world.setWorldTime(worldTime);
             }
+
+            world.getWorldInfo().setCleanWeatherTime(weatherTime);
         }
 
         // Check pause state and fix if incorrect.
@@ -112,6 +114,7 @@ public class PlayerEventHandler {
         ReadyPlayerFun.logger.info(String.format("Pausing server %s", ctx));
         startPauseTime = System.currentTimeMillis();
         worldTime = world.getWorldTime();
+        weatherTime = world.getWorldInfo().getCleanWeatherTime();
         paused = true;
     }
 
