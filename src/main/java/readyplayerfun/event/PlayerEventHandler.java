@@ -4,7 +4,7 @@ import org.apache.commons.lang3.time.DurationFormatUtils;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.management.PlayerList;
-import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
 
 import net.minecraftforge.event.world.WorldEvent;
@@ -44,12 +44,12 @@ public class PlayerEventHandler {
             if (playerList.getCurrentPlayerCount() >= 1 && paused) {
                 long duration = System.currentTimeMillis() - startPauseTime;
                 String durationString = DurationFormatUtils.formatDuration(duration, "H:mm:ss", true);
-                TextComponentTranslation msg = new TextComponentTranslation("readyplayerfun.message.unpaused", durationString);
+                String msg = String.format("Welcome back! Server resumed after %s.", durationString);
 
                 ReadyPlayerFun.logger.info(msg);
 
                 if (ConfigHandler.server.ENABLE_WELCOME_MESSAGE) {
-                    player.sendMessage(msg);
+                    player.sendMessage(new TextComponentString(msg));
                 }
 
                 paused = false;
