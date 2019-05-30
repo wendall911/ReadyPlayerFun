@@ -21,6 +21,10 @@ import readyplayerfun.ReadyPlayerFun;
 import sereneseasons.season.SeasonSavedData;
 import sereneseasons.handler.season.SeasonHandler;
 
+import weather2.config.ConfigMisc;
+import weather2.ServerTickHandler;
+import weather2.util.WeatherUtilConfig;
+
 public class PlayerEventHandler {
 
     private boolean worldLoaded = false;
@@ -34,6 +38,7 @@ public class PlayerEventHandler {
     private int weatherTime;
     private int rainTime;
     private int thunderTime;
+    private int weatherAutoSaveInterval;
 
     @SubscribeEvent
     public void onPlayerLogin(final PlayerEvent.PlayerLoggedInEvent event) {
@@ -46,13 +51,11 @@ public class PlayerEventHandler {
                 String durationString = DurationFormatUtils.formatDuration(duration, "H:mm:ss", true);
                 String msg = String.format("Welcome back! Server resumed after %s.", durationString);
 
-                ReadyPlayerFun.logger.info(msg);
-
                 if (ConfigHandler.server.ENABLE_WELCOME_MESSAGE) {
                     player.sendMessage(new TextComponentString(msg));
                 }
 
-                paused = false;
+                unpauseServer(String.format("onPlayerLogin, %s", durationString));
             }
         }
     }
@@ -105,8 +108,7 @@ public class PlayerEventHandler {
             PlayerList playerList = FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList();
             checkTime = now;
             if (paused && playerList.getCurrentPlayerCount() >= 1) {
-                ReadyPlayerFun.logger.info(String.format("Unpausing server %s", "onWorldTick"));
-                paused = false;
+                unpauseServer("onWorldTick");
             }
             else if (!paused && playerList.getCurrentPlayerCount() <= 0) {
                 pauseServer(world, "onWorldTick", 0);
@@ -128,6 +130,13 @@ public class PlayerEventHandler {
         worldTime = world.getWorldTime() + pad;
         raining = world.getWorldInfo().isRaining();
 
+        if (Loader.isModLoaded("weather2")) {
+            weatherAutoSaveInterval = ConfigMisc.Misc_AutoDataSaveIntervalInTicks;
+            ConfigMisc.Misc_AutoDataSaveIntervalInTicks = 0x7fffffff;
+            ServerTickHandler.reset();
+            WeatherUtilConfig.listDimensionsWeather.clear();
+        }
+
         if (raining) {
             thundering = world.getWorldInfo().isThundering();
             rainTime = world.getWorldInfo().getRainTime() + pad;
@@ -142,6 +151,16 @@ public class PlayerEventHandler {
                     raining, rainTime, thundering, thunderTime, weatherTime));
 
         paused = true;
+    }
+
+    private void unpauseServer(String ctx) {
+        if (Loader.isModLoaded("weather2")) {
+            ConfigMisc.Misc_AutoDataSaveIntervalInTicks = weatherAutoSaveInterval;
+            ServerTickHandler.initialize();
+        }
+        ReadyPlayerFun.logger.info(String.format("Unpausing server: %s", ctx));
+
+        paused = false;
     }
 
 }
