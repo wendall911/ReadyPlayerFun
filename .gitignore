@@ -3,3 +3,9 @@ build
 .gradle
 libs
 run
+
+# Eclipse
+.classpath
+.project
+.settings
+bin
