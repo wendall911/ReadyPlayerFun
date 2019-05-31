@@ -100,6 +100,7 @@ curseforge {
                 optionalLibrary 'extended-days'
                 optionalLibrary 'serene-seasons'
                 optionalLibrary 'time-speed-mod'
+                optionalLibrary 'weather-storms-tornadoes'
             }
         }
     }
