@@ -7,7 +7,6 @@ import net.minecraft.server.management.PlayerList;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
 
-import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.FMLCommonHandler;
@@ -27,7 +26,6 @@ import weather2.util.WeatherUtilConfig;
 
 public class PlayerEventHandler {
 
-    private boolean worldLoaded = false;
     private long startPauseTime;
     private boolean paused = false;
     private long worldTime;
@@ -66,7 +64,7 @@ public class PlayerEventHandler {
         World world = FMLCommonHandler.instance().getMinecraftServerInstance().getEntityWorld();
 
         if (playerList.getCurrentPlayerCount() <= 1) {
-            pauseServer(world, "onPlayerLogout", 0);
+            pauseServer(world, "onPlayerLogout");
         }
     }
 
@@ -111,23 +109,15 @@ public class PlayerEventHandler {
                 unpauseServer("onWorldTick");
             }
             else if (!paused && playerList.getCurrentPlayerCount() <= 0) {
-                pauseServer(world, "onWorldTick", 0);
+                pauseServer(world, "init");
             }
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onWorldLoad(WorldEvent.Load event) {
-        if (!worldLoaded) {
-            pauseServer(event.getWorld(), "onWorldLoad", 1);
-        }
-        worldLoaded = true;
-    }
-
-    private void pauseServer(World world, String ctx, int pad) {
+    private void pauseServer(World world, String ctx) {
         ReadyPlayerFun.logger.info(String.format("Pausing server %s", ctx));
         startPauseTime = System.currentTimeMillis();
-        worldTime = world.getWorldTime() + pad;
+        worldTime = world.getWorldTime();
         raining = world.getWorldInfo().isRaining();
 
         if (Loader.isModLoaded("weather2")) {
@@ -139,13 +129,13 @@ public class PlayerEventHandler {
 
         if (raining) {
             thundering = world.getWorldInfo().isThundering();
-            rainTime = world.getWorldInfo().getRainTime() + pad;
+            rainTime = world.getWorldInfo().getRainTime();
             if (thundering) {
-                thunderTime = world.getWorldInfo().getThunderTime() + pad;
+                thunderTime = world.getWorldInfo().getThunderTime();
             }
         }
         else {
-            weatherTime = world.getWorldInfo().getCleanWeatherTime() + pad;
+            weatherTime = world.getWorldInfo().getCleanWeatherTime();
         }
         ReadyPlayerFun.logger.debug(String.format("Raining: %s rainTime: %d, thundering: %s, thunderTime %d, weatherTime: %d",
                     raining, rainTime, thundering, thunderTime, weatherTime));
