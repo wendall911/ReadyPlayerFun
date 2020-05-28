@@ -1,6 +1,6 @@
 # Ready Player Fun [![Project](http://cf.way2muchnoise.eu/full_322036_downloads.svg)](https://minecraft.curseforge.com/projects/322036)
-![Minecraft](http://cf.way2muchnoise.eu/versions/For%20MC_322036_all.svg)
-![Forge](https://img.shields.io/badge/Forge-14.23.4.2705+-green.svg?longCache=true&style=flat)
+![Minecraft](http://cf.way2muchnoise.eu/versions/322036.svg)
+![Forge](https://img.shields.io/badge/Forge-14.23.5.2823+|31.2.0+-green.svg?longCache=true&style=flat)
 ![MIT](https://img.shields.io/badge/license-MIT-blue.svg?longCache=true&style=flat)
 
 A Minecraft 1.12.2+ mod to designed to allow a server to remain running while time, weather and season are paused.
