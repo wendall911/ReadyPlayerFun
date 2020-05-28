@@ -30,7 +30,6 @@ public class PlayerEventHandler {
     private long startPauseTime;
     private boolean paused = false;
     private long worldTime;
-    private int seasonCycleTicks;
     private long checkTime = System.currentTimeMillis();
     private boolean raining = false;
     private boolean thundering = false;

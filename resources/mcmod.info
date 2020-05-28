@@ -6,7 +6,7 @@
   "version": "${mod_version}",
   "mcversion": "${minecraft_version}",
   "url": "https://github.com/wendall911/ReadyPlayerFun",
-  "updateUrl": "https://raw.githubusercontent.com/wendall911/ReadyPlayerFun/master/files/updates.json",
+  "updateUrl": "https://raw.githubusercontent.com/wendall911/ReadyPlayerFun/1.12.2/files/updates.json",
   "authorList": ["wendall911"],
   "credits": "ashar42",
   "logoFile": "assets/readyplayerfun/textures/gui/logo.png"

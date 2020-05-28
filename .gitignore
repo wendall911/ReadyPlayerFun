@@ -9,3 +9,6 @@ run
 .project
 .settings
 bin
+
+# IntelliJ
+.idea
