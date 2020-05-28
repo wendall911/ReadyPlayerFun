@@ -87,8 +87,10 @@ public class PlayerEventHandler {
             }
 
             if (world.getGameRules().getBoolean(GameRules.DO_DAYLIGHT_CYCLE)) {
-                world.setGameTime(gameTime);
-                world.setDayTime(dayTime);
+                for(ServerWorld serverworld : event.world.getServer().getWorlds()) {
+                    serverworld.setGameTime(gameTime);
+                    serverworld.setDayTime(dayTime);
+                }
             }
 
             if (raining) {
