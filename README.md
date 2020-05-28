@@ -5,9 +5,10 @@
 
 A Minecraft 1.12.2+ mod to designed to allow a server to remain running while time, weather and season are paused.
 
-Download latest (1.12.2):
+Download latest:
 
-[![Download](https://curse.nikky.moe/api/img/322036?logo)](https://curse.nikky.moe/api/url/322036)
+1.12.2 - [![Download](https://curse.nikky.moe/api/img/322036?logo&version=1.12.2)](https://curse.nikky.moe/api/url/322036?version=1.12.2)
+1.15.2 - [![Download](https://curse.nikky.moe/api/img/322036?logo&version=1.12.2)](https://curse.nikky.moe/api/url/322036?version=1.15.2)
 
 All Downloads:
 
