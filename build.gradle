@@ -25,7 +25,6 @@ apply plugin: 'com.matthewprenger.cursegradle'
 group = 'com.github.wendall911.readyplayerfun'
 version = "${minecraft_version}-${mod_version}"
 archivesBaseName = "${mod_name}"
-def mcversion = "${minecraft_version}"
 def modid = "${modid}"
 
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
@@ -72,7 +71,7 @@ curseforge {
     apiKey = project.rpfcurseApiKey
     project {
         id = project.rpfcurseId
-        changelog = file('build/libs/' + project.getName() + '-' + minecraft_version + '-' + mod_version + '-changelog.txt')
+        changelog = file('build/libs/' + project.getName() + '-' + version + '-changelog.txt')
         releaseType = cf_release_type
         addGameVersion(minecraft_version)
         mainArtifact(jar) {
@@ -86,7 +85,7 @@ curseforge {
 tasks.curseforge.dependsOn build
 
 task changelog(type: se.bjurr.gitchangelog.plugin.gradle.GitChangelogTask) {
-	file = new File('build/libs/' + project.getName() + '-' + project.version + '-changelog.txt');
+	file = new File('build/libs/' + project.getName() + '-' + version + '-changelog.txt');
     templateContent = file('files/templates/changelog.mustache').getText('UTF-8');
 	toRef = "${mod_version}";
 	fromRef = "${last_mod_version}";
@@ -118,7 +117,6 @@ sourceSets {
 
 processResources {
     from(sourceSets.main.resources.srcDirs) {
-        include 'mcmod.info'
         include 'META-INF/mods.toml'
 
         // replaces
