@@ -1,0 +1,26 @@
+modLoader="javafml"
+loaderVersion="[31,)"
+
+[[mods]]
+  modId="${modid}"
+  displayName="Ready Player Fun"
+  description="Pause time and seasons when no players are logged in."
+  version="${mod_version}"
+  displayURL="https://github.com/wendall911/ReadyPlayerFun"
+  updateJSONURL="https://raw.githubusercontent.com/wendall911/ReadyPlayerFun/1.15.2/files/updates.json"
+  authors="${mod_author}"
+  credits="ashar42"
+  logoFile="assets/readyplayerfun/textures/gui/logo.png"
+
+[[dependencies.readyplayerfun]]
+    modId="forge"
+    mandatory=true
+    versionRange="[31,)"
+    ordering="NONE"
+    side="SERVER"
+[[dependencies.readyplayerfun]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.15.2]"
+    ordering="NONE"
+    side="SERVER"
