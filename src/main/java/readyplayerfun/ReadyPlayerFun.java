@@ -2,52 +2,26 @@ package readyplayerfun;
 
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.SidedProxy;
-import net.minecraftforge.fml.common.event.FMLFingerprintViolationEvent;
-import net.minecraftforge.fml.common.event.FMLInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.network.NetworkRegistry;
+import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.ModLoadingContext;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
-import readyplayerfun.proxy.CommonProxy;
+import readyplayerfun.config.ConfigHandler;
+import readyplayerfun.event.PlayerEventHandler;
 
-@Mod(modid = ReadyPlayerFun.MODID,
-     version = ReadyPlayerFun.MOD_VERSION,
-     name = ReadyPlayerFun.MOD_NAME,
-     certificateFingerprint = "@FINGERPRINT@",
-     serverSideOnly = true,
-     dependencies = "required-after:forge@[@FORGE_VERSION@,);",
-     acceptableRemoteVersions = "*",
-     acceptedMinecraftVersions = "[@MC_VERSION@,)"
-)
-
+@Mod(ReadyPlayerFun.MODID)
 public class ReadyPlayerFun {
 
-    public static final String MODID = "@MODID@";
-    public static final String MOD_VERSION = "@MOD_VERSION@";
-    public static final String MOD_NAME = "@MOD_NAME@";
+    public static final String MODID = "readyplayerfun";
 
-    @SidedProxy(serverSide = "readyplayerfun.proxy.ServerProxy")
-    public static CommonProxy proxy;
+    public static final Logger logger = LogManager.getFormatterLogger(ReadyPlayerFun.MODID);
 
-    @Mod.Instance
-    public static ReadyPlayerFun instance;
+    public ReadyPlayerFun() {
+        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, ConfigHandler.SERVER_SPECS);
 
-    public static Logger logger = LogManager.getFormatterLogger(ReadyPlayerFun.MODID);
-
-    @Mod.EventHandler
-    public void onFingerprintViolation(FMLFingerprintViolationEvent event) {
-        logger.warn("Invalid fingerprint detected!");
-    }
-
-    @Mod.EventHandler
-    public void preInit(FMLPreInitializationEvent event) {
-        logger.info("Pre-init started");
-        proxy.preInit(event);
+        MinecraftForge.EVENT_BUS.register(new PlayerEventHandler());
     }
 
 }

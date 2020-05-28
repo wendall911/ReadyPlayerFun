@@ -2,18 +2,20 @@ package readyplayerfun.event;
 
 import org.apache.commons.lang3.time.DurationFormatUtils;
 
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.management.PlayerList;
-import net.minecraft.util.text.TextComponentString;
-import net.minecraft.world.World;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.world.GameRules;
+import net.minecraft.world.server.ServerWorld;
 
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.world.WorldEvent;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.FMLCommonHandler;
-import net.minecraftforge.fml.common.gameevent.PlayerEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
-import net.minecraftforge.fml.common.Loader;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.ModList;
 
 import readyplayerfun.config.ConfigHandler;
 import readyplayerfun.ReadyPlayerFun;
@@ -21,50 +23,47 @@ import readyplayerfun.ReadyPlayerFun;
 import sereneseasons.season.SeasonSavedData;
 import sereneseasons.handler.season.SeasonHandler;
 
-import weather2.config.ConfigMisc;
-import weather2.ServerTickHandler;
-import weather2.util.WeatherUtilConfig;
-
+@Mod.EventBusSubscriber(modid = ReadyPlayerFun.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.DEDICATED_SERVER)
 public class PlayerEventHandler {
 
     private long startPauseTime;
     private boolean paused = false;
-    private long worldTime;
-    private int seasonCycleTicks;
     private long checkTime = System.currentTimeMillis();
+    private long gameTime;
+    private long dayTime;
     private boolean raining = false;
     private boolean thundering = false;
     private int weatherTime;
     private int rainTime;
     private int thunderTime;
-    private int weatherAutoSaveInterval;
     private boolean doFireTick;
     private int randomTickSpeed;
 
     @SubscribeEvent
     public void onPlayerLogin(final PlayerEvent.PlayerLoggedInEvent event) {
-        if (event.player instanceof EntityPlayerMP) {
-            EntityPlayerMP player = (EntityPlayerMP) event.player;
-            PlayerList playerList = FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList();
+        if (event.getPlayer() instanceof PlayerEntity) {
+            PlayerEntity player = (PlayerEntity) event.getPlayer();
+            PlayerList playerList = event.getPlayer().getServer().getPlayerList();
+            ServerWorld world = (ServerWorld)event.getPlayer().getEntityWorld().getWorld();
 
             if (playerList.getCurrentPlayerCount() >= 1 && paused) {
                 long duration = System.currentTimeMillis() - startPauseTime;
                 String durationString = DurationFormatUtils.formatDuration(duration, "H:mm:ss", true);
                 String msg = String.format("Welcome back! Server resumed after %s.", durationString);
 
-                if (ConfigHandler.server.ENABLE_WELCOME_MESSAGE) {
-                    player.sendMessage(new TextComponentString(msg));
+                if (ConfigHandler.enableWelcomeMessage.get()) {
+                    player.sendMessage(new StringTextComponent(msg));
                 }
 
-                unpauseServer(String.format("onPlayerLogin, %s", durationString), event.player.world);
+                unpauseServer(String.format("onPlayerLogin, %s", durationString), world);
             }
         }
     }
 
     @SubscribeEvent
     public void onPlayerLogout(final PlayerEvent.PlayerLoggedOutEvent event) {
-        PlayerList playerList = FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList();
-        World world = FMLCommonHandler.instance().getMinecraftServerInstance().getEntityWorld();
+        PlayerList playerList = event.getPlayer().getServer().getPlayerList();
+        ServerWorld world = (ServerWorld)event.getPlayer().getEntityWorld().getWorld();
 
         if (playerList.getCurrentPlayerCount() <= 1) {
             pauseServer(world, "onPlayerLogout");
@@ -73,22 +72,23 @@ public class PlayerEventHandler {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onWorldTick(TickEvent.WorldTickEvent event) {
-        World world = event.world;
+        ServerWorld world = (ServerWorld)event.world.getWorld();
         long now = System.currentTimeMillis();
 
-        if (world == null || world.provider == null || world.provider.getDimension() != 0) {
+        if (world == null) {
             return;
         }
         else if (paused && event.phase == TickEvent.Phase.START) {
-            if (Loader.isModLoaded("sereneseasons")) {
+            if (ModList.get().isLoaded("sereneseasons")) {
                 SeasonSavedData savedData = SeasonHandler.getSeasonSavedData(world);
 
                 savedData.seasonCycleTicks--;
                 savedData.markDirty();
             }
 
-            if (world.getGameRules().getBoolean("doDaylightCycle")) {
-                world.setWorldTime(worldTime);
+            if (world.getGameRules().getBoolean(GameRules.DO_DAYLIGHT_CYCLE)) {
+                world.setGameTime(gameTime);
+                world.setDayTime(dayTime);
             }
 
             if (raining) {
@@ -100,47 +100,44 @@ public class PlayerEventHandler {
                 }
             }
             else {
-                world.getWorldInfo().setCleanWeatherTime(weatherTime);
+                world.getWorldInfo().setClearWeatherTime(weatherTime);
             }
         }
 
         // Check pause state and fix if incorrect.
         if ((now - checkTime) > 1000) {
-            PlayerList playerList = FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList();
+            PlayerList playerList = world.getServer().getPlayerList();
             checkTime = now;
             if (paused && playerList.getCurrentPlayerCount() >= 1) {
                 unpauseServer("onWorldTick", world);
             }
             else if (!paused && playerList.getCurrentPlayerCount() <= 0) {
-                pauseServer(world, "init");
+                pauseServer(world, "onWorldTick");
             }
         }
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onWorldLoad(WorldEvent.Load event) {
-        World world = event.getWorld();
-        randomTickSpeed = world.getGameRules().getInt("randomTickSpeed");
-        doFireTick = world.getGameRules().getBoolean("doFireTick");
+        ServerWorld world = (ServerWorld)event.getWorld();
+        randomTickSpeed = world.getGameRules().getInt(GameRules.RANDOM_TICK_SPEED);
+        doFireTick = world.getGameRules().getBoolean(GameRules.DO_FIRE_TICK);
     }
 
-    private void pauseServer(World world, String ctx) {
-        ReadyPlayerFun.logger.info(String.format("Pausing server %s", ctx));
+    private void pauseServer(ServerWorld world, String ctx) {
         startPauseTime = System.currentTimeMillis();
-        worldTime = world.getWorldTime();
+        gameTime = world.getGameTime();
+        dayTime = world.getDayTime();
+
         raining = world.getWorldInfo().isRaining();
-        randomTickSpeed = world.getGameRules().getInt("randomTickSpeed");
-        doFireTick = world.getGameRules().getBoolean("doFireTick");
+        randomTickSpeed = world.getGameRules().getInt(GameRules.RANDOM_TICK_SPEED);
+        doFireTick = world.getGameRules().getBoolean(GameRules.DO_FIRE_TICK);
 
-        world.getGameRules().setOrCreateGameRule("doFireTick", "false");
-        world.getGameRules().setOrCreateGameRule("randomTickSpeed", "0");
+        ReadyPlayerFun.logger.info(
+                String.format("Pausing server %s at %d, %d", ctx, gameTime, dayTime));
 
-        if (Loader.isModLoaded("weather2")) {
-            weatherAutoSaveInterval = ConfigMisc.Misc_AutoDataSaveIntervalInTicks;
-            ConfigMisc.Misc_AutoDataSaveIntervalInTicks = 0x7fffffff;
-            ServerTickHandler.reset();
-            WeatherUtilConfig.listDimensionsWeather.clear();
-        }
+        world.getGameRules().write().putInt(GameRules.RANDOM_TICK_SPEED.getName(), 0);
+        world.getGameRules().get(GameRules.DO_FIRE_TICK).set(false, null);
 
         if (raining) {
             thundering = world.getWorldInfo().isThundering();
@@ -150,7 +147,7 @@ public class PlayerEventHandler {
             }
         }
         else {
-            weatherTime = world.getWorldInfo().getCleanWeatherTime();
+            weatherTime = world.getWorldInfo().getClearWeatherTime();
         }
 
         ReadyPlayerFun.logger.debug(String.format("(pauseServer) Raining: %s rainTime: %d, thundering: %s, thunderTime %d, weatherTime: %d, randomTickSpeed: %d, doFireTick: %s",
@@ -159,16 +156,12 @@ public class PlayerEventHandler {
         paused = true;
     }
 
-    private void unpauseServer(String ctx, World world) {
-        if (Loader.isModLoaded("weather2")) {
-            ConfigMisc.Misc_AutoDataSaveIntervalInTicks = weatherAutoSaveInterval;
-            ServerTickHandler.initialize();
-        }
+    private void unpauseServer(String ctx, ServerWorld world) {
+        world.getGameRules().get(GameRules.DO_FIRE_TICK).set(doFireTick, null);
+        world.getGameRules().write().putInt(GameRules.RANDOM_TICK_SPEED.getName(), randomTickSpeed);
 
-        world.getGameRules().setOrCreateGameRule("doFireTick", String.valueOf(doFireTick));
-        world.getGameRules().setOrCreateGameRule("randomTickSpeed", String.valueOf(randomTickSpeed));
-
-        ReadyPlayerFun.logger.info(String.format("Unpausing server: %s", ctx));
+        ReadyPlayerFun.logger.info(
+                String.format("Unpausing server: %s at %d, %d", ctx, gameTime, dayTime));
 
         paused = false;
     }
