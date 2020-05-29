@@ -24,7 +24,7 @@ import sereneseasons.season.SeasonSavedData;
 import sereneseasons.handler.season.SeasonHandler;
 
 @Mod.EventBusSubscriber(modid = ReadyPlayerFun.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.DEDICATED_SERVER)
-public class PlayerEventHandler {
+public class ServerEventHandler {
 
     private long startPauseTime;
     private boolean paused = false;
