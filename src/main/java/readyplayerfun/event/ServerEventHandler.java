@@ -20,9 +20,6 @@ import net.minecraftforge.fml.ModList;
 import readyplayerfun.config.ConfigHandler;
 import readyplayerfun.ReadyPlayerFun;
 
-import sereneseasons.season.SeasonSavedData;
-import sereneseasons.handler.season.SeasonHandler;
-
 @Mod.EventBusSubscriber(modid = ReadyPlayerFun.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.DEDICATED_SERVER)
 public class ServerEventHandler {
 
@@ -79,13 +76,6 @@ public class ServerEventHandler {
             return;
         }
         else if (paused && event.phase == TickEvent.Phase.START) {
-            if (ModList.get().isLoaded("sereneseasons")) {
-                SeasonSavedData savedData = SeasonHandler.getSeasonSavedData(world);
-
-                savedData.seasonCycleTicks--;
-                savedData.markDirty();
-            }
-
             if (world.getGameRules().getBoolean(GameRules.DO_DAYLIGHT_CYCLE)) {
                 for(ServerWorld serverworld : event.world.getServer().getWorlds()) {
                     serverworld.setGameTime(gameTime);
