@@ -18,9 +18,6 @@ import net.minecraftforge.fml.common.Loader;
 import readyplayerfun.config.ConfigHandler;
 import readyplayerfun.ReadyPlayerFun;
 
-import sereneseasons.season.SeasonSavedData;
-import sereneseasons.handler.season.SeasonHandler;
-
 import weather2.config.ConfigMisc;
 import weather2.ServerTickHandler;
 import weather2.util.WeatherUtilConfig;
@@ -79,13 +76,6 @@ public class PlayerEventHandler {
             return;
         }
         else if (paused && event.phase == TickEvent.Phase.START) {
-            if (Loader.isModLoaded("sereneseasons")) {
-                SeasonSavedData savedData = SeasonHandler.getSeasonSavedData(world);
-
-                savedData.seasonCycleTicks--;
-                savedData.markDirty();
-            }
-
             if (world.getGameRules().getBoolean("doDaylightCycle")) {
                 world.setWorldTime(worldTime);
             }
