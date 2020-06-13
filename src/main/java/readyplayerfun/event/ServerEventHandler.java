@@ -158,4 +158,8 @@ public class ServerEventHandler {
         paused = false;
     }
 
+    public boolean isPaused() {
+        return paused;
+    }
+
 }
