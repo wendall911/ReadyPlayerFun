@@ -23,6 +23,8 @@ import readyplayerfun.ReadyPlayerFun;
 @Mod.EventBusSubscriber(modid = ReadyPlayerFun.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.DEDICATED_SERVER)
 public class ServerEventHandler {
 
+    public static final ServerEventHandler INSTANCE = new ServerEventHandler();
+
     private long startPauseTime;
     private boolean paused = false;
     private long checkTime = System.currentTimeMillis();

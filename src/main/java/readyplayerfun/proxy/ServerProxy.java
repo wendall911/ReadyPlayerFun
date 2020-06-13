@@ -8,7 +8,7 @@ public class ServerProxy {
 
     public ServerProxy() {
 
-        MinecraftForge.EVENT_BUS.register(new ServerEventHandler());
+        MinecraftForge.EVENT_BUS.register(ServerEventHandler.INSTANCE);
 
     }
 
