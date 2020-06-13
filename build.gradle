@@ -18,9 +18,10 @@ buildscript {
     }
 }
 
+apply plugin: 'com.matthewprenger.cursegradle'
+apply plugin: 'maven-publish'
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'se.bjurr.gitchangelog.git-changelog-gradle-plugin'
-apply plugin: 'com.matthewprenger.cursegradle'
 
 group = 'com.github.wendall911.readyplayerfun'
 version = "${minecraft_version}-${mod_version}"
@@ -92,6 +93,13 @@ task changelog(type: se.bjurr.gitchangelog.plugin.gradle.GitChangelogTask) {
 
 tasks.build.dependsOn('changelog')
 
+
+def reobfFile = file('build/reobfJar/output.jar')
+def reobfArtifact = artifacts.add('default', reobfFile) {
+    type 'jar'
+    builtBy 'reobfJar'
+}
+
 task sourcesJar(type: Jar) {
     from sourceSets.main.allJava
     from (sourceSets.main.output) {
@@ -128,6 +136,26 @@ processResources {
 
     from(sourceSets.main.resources.srcDirs) {
         exclude 'META-INF/mods.toml'
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifact reobfArtifact
+            artifact deobfJar
+            artifact sourcesJar
+        }
+    }
+    repositories {
+        maven {
+            name = 'GitHubPackages'
+            url = uri('https://maven.pkg.github.com/wendall911/ReadyPlayerFun')
+            credentials {
+                username = project.githubusername
+                password = project.githubtoken
+            }
+        }
     }
 }
 
