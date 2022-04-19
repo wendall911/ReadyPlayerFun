@@ -83,9 +83,9 @@ public class ServerEventHandler {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onWorldTick(TickEvent.WorldTickEvent event) {
         long now = System.currentTimeMillis();
-        ServerLevel world = (ServerLevel)event.world;
+        ServerLevel world = event.world instanceof ServerLevel ? (ServerLevel)event.world : null;
 
-        if (event.side != LogicalSide.SERVER) {
+        if (event.side != LogicalSide.SERVER || world == null || event.phase != TickEvent.Phase.END) {
             return;
         }
         else if (paused && event.phase == TickEvent.Phase.START) {
