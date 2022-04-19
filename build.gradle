@@ -8,12 +8,17 @@ buildscript {
             name = 'forge'
             url = 'https://files.minecraftforge.net/maven'
         }
+        maven {
+            name = 'parchment'
+            url = 'https://maven.parchmentmc.org'
+        }
         mavenCentral()
     }
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
         classpath 'gradle.plugin.com.matthewprenger:CurseGradle:1.4.0'
         classpath 'se.bjurr.gitchangelog:git-changelog-gradle-plugin:1.71.8'
+        classpath group: 'org.parchmentmc', name: 'librarian', version: '1.+'
     }
 }
 
@@ -21,6 +26,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'maven-publish'
 apply plugin: 'se.bjurr.gitchangelog.git-changelog-gradle-plugin'
 apply plugin: 'com.matthewprenger.cursegradle'
+apply plugin: 'org.parchmentmc.librarian.forgegradle'
 
 repositories {
     maven {
@@ -33,7 +39,7 @@ repositories {
 }
 
 group = 'com.github.wendall911.readyplayerfun'
-version = "${minecraft_version}-${mod_version}"
+version = "${minecraft_short_version}-${mod_version}"
 archivesBaseName = "${mod_name}"
 def modid = "${modid}"
 
@@ -82,6 +88,26 @@ jar {
     }
 }
 
+def replaceResources = tasks.register("replaceResources", Copy) {
+    it.outputs.upToDateWhen {
+        false
+    }
+
+    it.from(sourceSets.main.resources) {
+        include "META-INF/mods.toml"
+        expand 'version': version, 'mc_version_range': mc_version_range, 'forge_version_range': forge_version_range, "loader_version": loader_version
+    }
+    it.into "$buildDir/resources/main/"
+}
+
+processResources {
+    duplicatesStrategy(DuplicatesStrategy.FAIL)
+    exclude('META-INF/mods.toml')
+    configure {
+        finalizedBy(replaceResources)
+    }
+}
+
 jar.finalizedBy('reobfJar', 'signJar')
 
 def reobfFile = file("$buildDir/reobfJar/output.jar")
@@ -105,12 +131,14 @@ publishing {
 
 curseforge {
     if (project.hasProperty('rpfcurseApiKey')) {
-        apiKey = project.stocurseApiKey
+        apiKey = project.rpfcurseApiKey
         project {
             id = project.rpfcurseId
             changelog = file('build/libs/' + project.getName() + '-' + version + '-changelog.txt')
             releaseType = cf_release_type
-            addGameVersion(minecraft_version)
+            "${cf_versions}".split(',').each {
+                addGameVersion "${it}"
+            }
             mainArtifact(jar) {
                 relations {
                     optionalLibrary 'configured'
