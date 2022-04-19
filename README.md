@@ -11,6 +11,8 @@ Download latest:
 
 1.15.2 - [![Download](https://curse.nikky.moe/api/img/322036?version=1.15.2&logo)](https://curse.nikky.moe/api/url/322036?version=1.15.2)
 
+1.18.1 - [![Download](https://curse.nikky.moe/api/img/322036?version=1.18.1&logo)](https://curse.nikky.moe/api/url/322036?version=1.18.1)
+
 All Downloads:
 
 [![Files](https://curse.nikky.moe/api/img/322036/files?logo)](https://minecraft.curseforge.com/projects/322036/files)
