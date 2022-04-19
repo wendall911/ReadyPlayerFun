@@ -125,8 +125,20 @@ public class ServerEventHandler {
     public static void onWorldLoad(WorldEvent.Load event) {
         ServerLevel world = (ServerLevel)event.getWorld();
 
-        randomTickSpeed = world.getGameRules().getInt(GameRules.RULE_RANDOMTICKING);
-        doFireTick = world.getGameRules().getBoolean(GameRules.RULE_DOFIRETICK);
+        if (!world.isClientSide()) {
+            randomTickSpeed = world.getGameRules().getInt(GameRules.RULE_RANDOMTICKING);
+            doFireTick = world.getGameRules().getBoolean(GameRules.RULE_DOFIRETICK);
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onWorldUnLoad(WorldEvent.Unload event) {
+        ServerLevel world = (ServerLevel)event.getWorld();
+
+        if (!world.isClientSide()) {
+            world.getGameRules().getRule(GameRules.RULE_DOFIRETICK).set(doFireTick, null);
+            world.getGameRules().getRule(GameRules.RULE_RANDOMTICKING).set(randomTickSpeed, null);
+        }
     }
 
     private static void pauseServer(ServerLevel world, String ctx) {
