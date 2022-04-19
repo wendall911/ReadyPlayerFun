@@ -1,46 +1,65 @@
 buildscript {
     repositories {
-        mavenCentral()
-        jcenter()
         maven {
             name = 'gradle plugins'
             url "https://plugins.gradle.org/m2/"
         }
         maven {
             name = 'forge'
-            url = 'http://files.minecraftforge.net/maven'
+            url = 'https://files.minecraftforge.net/maven'
         }
+        mavenCentral()
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
         classpath 'gradle.plugin.com.matthewprenger:CurseGradle:1.4.0'
-        classpath 'se.bjurr.gitchangelog:git-changelog-gradle-plugin:1.64'
+        classpath 'se.bjurr.gitchangelog:git-changelog-gradle-plugin:1.71.8'
     }
 }
 
-apply plugin: 'com.matthewprenger.cursegradle'
-apply plugin: 'maven-publish'
 apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'maven-publish'
 apply plugin: 'se.bjurr.gitchangelog.git-changelog-gradle-plugin'
+apply plugin: 'com.matthewprenger.cursegradle'
+
+repositories {
+    maven {
+        name = "Curse Maven"
+        url = "https://cursemaven.com"
+        content {
+            includeGroup "curse.maven"
+        }
+    }
+}
 
 group = 'com.github.wendall911.readyplayerfun'
 version = "${minecraft_version}-${mod_version}"
 archivesBaseName = "${mod_name}"
 def modid = "${modid}"
 
-sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
+sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '17'
 
 minecraft {
-    mappings channel: 'snapshot', version: mappings_version
+    mappings channel: "${mappings_channel}", version: mappings_version
 
     runs {
-        client = {
-            workingDirectory = project.file("run").canonicalPath
-            source sourceSets.main
+        client {
+            workingDirectory project.file("run").canonicalPath
+
+            mods {
+                readyplayerfun {
+                    source sourceSets.main
+                }
+            }
         }
-        server = {
-            workingDirectory = project.file("run").canonicalPath
-            source sourceSets.main
+        server {
+            workingDirectory project.file("run").canonicalPath
+
+            mods {
+                readyplayerfun {
+                    source sourceSets.main
+                }
+            }
         }
     }    
 }
@@ -52,7 +71,7 @@ dependencies {
 jar {
     manifest {
         attributes([
-            "Specification-Title": "${mod_name}",
+            "Specification-Title": mod_name,
             "Specification-Vendor": "${mod_author}",
             "Specification-Version": "${version}",
             "Implementation-Title": "${mod_name}",
@@ -63,20 +82,41 @@ jar {
     }
 }
 
-tasks.withType(JavaCompile) {
-    options.compilerArgs += ['-Xlint:deprecation', '-Xlint:unchecked']
+jar.finalizedBy('reobfJar', 'signJar')
+
+def reobfFile = file("$buildDir/reobfJar/output.jar")
+def reobfArtifact = artifacts.add('default', reobfFile) {
+    type 'jar'
+    builtBy 'reobfJar'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifact reobfArtifact
+        }
+    }
+    repositories {
+        maven {
+            url "file:///${project.projectDir}/mcmodsrepo"
+        }
+    }
 }
 
 curseforge {
-    apiKey = project.rpfcurseApiKey
-    project {
-        id = project.rpfcurseId
-        changelog = file('build/libs/' + project.getName() + '-' + version + '-changelog.txt')
-        releaseType = cf_release_type
-        addGameVersion(minecraft_version)
-        mainArtifact(jar) {
-            relations {
-                optionalLibrary 'serene-seasons'
+    if (project.hasProperty('rpfcurseApiKey')) {
+        apiKey = project.stocurseApiKey
+        project {
+            id = project.rpfcurseId
+            changelog = file('build/libs/' + project.getName() + '-' + version + '-changelog.txt')
+            releaseType = cf_release_type
+            addGameVersion(minecraft_version)
+            mainArtifact(jar) {
+                relations {
+                    optionalLibrary 'configured'
+                    optionalLibrary 'catalogue'
+                    optionalLibrary 'serene-seasons'
+                }
             }
         }
     }
@@ -85,20 +125,14 @@ curseforge {
 tasks.curseforge.dependsOn build
 
 task changelog(type: se.bjurr.gitchangelog.plugin.gradle.GitChangelogTask) {
-	file = new File('build/libs/' + project.getName() + '-' + version + '-changelog.txt');
+    file = new File('build/libs/' + project.getName() + '-' + version + '-changelog.txt');
     templateContent = file('files/templates/changelog.mustache').getText('UTF-8');
-	toRef = "${mod_version}";
-	fromRef = "${last_mod_version}";
+    fromRepo = file("$projectDir");
+    toRef = "HEAD";
+    fromRef = "${last_mod_version}";
 }
 
 tasks.build.dependsOn('changelog')
-
-
-def reobfFile = file('build/reobfJar/output.jar')
-def reobfArtifact = artifacts.add('default', reobfFile) {
-    type 'jar'
-    builtBy 'reobfJar'
-}
 
 task sourcesJar(type: Jar) {
     from sourceSets.main.allJava
@@ -114,48 +148,22 @@ task deobfJar(type: Jar) {
     classifier = 'deobf'
 }
 
-sourceSets {
-    main {
-        resources {
-            srcDir 'resources'
-        }   
-    }   
-}
+// Jar Signing
+import net.minecraftforge.gradle.common.tasks.SignJar
 
-processResources {
-    from(sourceSets.main.resources.srcDirs) {
-        include 'META-INF/mods.toml'
+task signJar(type: SignJar, dependsOn: jar) {
+    dependsOn 'reobfJar'
 
-        // replaces
-        expand ([
-            'modid': modid,
-            'mod_version': version,
-            'mod_author': mod_author
-        ])
+    // Skip the task if our secret data isn't available
+    onlyIf {
+        project.hasProperty('keyStore')
     }
 
-    from(sourceSets.main.resources.srcDirs) {
-        exclude 'META-INF/mods.toml'
-    }
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifact reobfArtifact
-            artifact deobfJar
-            artifact sourcesJar
-        }
-    }
-    repositories {
-        maven {
-            name = 'GitHubPackages'
-            url = uri('https://maven.pkg.github.com/wendall911/ReadyPlayerFun')
-            credentials {
-                username = project.githubusername
-                password = project.githubtoken
-            }
-        }
-    }
+    keyStore = project.keyStore // This needs to be a path to the keystore file
+    alias = project.keyStoreAlias
+    storePass = project.keyStorePass
+    keyPass = project.keyStoreKeyPass
+    inputFile = jar.archivePath
+    outputFile = jar.archivePath
 }
 

@@ -2,56 +2,62 @@ package readyplayerfun.event;
 
 import org.apache.commons.lang3.time.DurationFormatUtils;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.server.management.PlayerList;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.world.GameRules;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.PlayerList;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.GameRules;
 
-import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.LogicalSide;
 
 import readyplayerfun.config.ConfigHandler;
 import readyplayerfun.ReadyPlayerFun;
 
-@Mod.EventBusSubscriber(modid = ReadyPlayerFun.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.DEDICATED_SERVER)
+@Mod.EventBusSubscriber(modid = ReadyPlayerFun.MODID)
 public class ServerEventHandler {
 
     public static final ServerEventHandler INSTANCE = new ServerEventHandler();
 
-    private long startPauseTime;
-    private boolean paused = false;
-    private long checkTime = System.currentTimeMillis();
-    private long gameTime;
-    private long dayTime;
-    private boolean raining = false;
-    private boolean thundering = false;
-    private int weatherTime;
-    private int rainTime;
-    private int thunderTime;
-    private boolean doFireTick;
-    private int randomTickSpeed;
+    private static long startPauseTime;
+    private static boolean paused = false;
+    private static long checkTime = System.currentTimeMillis();
+    private static long gameTime;
+    private static long dayTime;
+    private static boolean raining = false;
+    private static boolean thundering = false;
+    private static int weatherTime;
+    private static int rainTime;
+    private static int thunderTime;
+    private static boolean doFireTick;
+    private static int randomTickSpeed;
 
     @SubscribeEvent
-    public void onPlayerLogin(final PlayerEvent.PlayerLoggedInEvent event) {
-        if (event.getPlayer() instanceof PlayerEntity) {
-            PlayerEntity player = (PlayerEntity) event.getPlayer();
-            PlayerList playerList = event.getPlayer().getServer().getPlayerList();
-            ServerWorld world = (ServerWorld)event.getPlayer().getEntityWorld().getWorld();
+    public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
+        Player player = event.getPlayer() instanceof Player ? (Player) event.getPlayer() : null;
 
-            if (playerList.getCurrentPlayerCount() >= 1 && paused) {
+        if (player != null && !player.level.isClientSide) {
+            ServerPlayer sp = (ServerPlayer) player;
+            PlayerList playerList = sp.getServer().getPlayerList();
+            ServerLevel world = sp.getLevel();
+
+            if (playerList.getPlayerCount() >= 1 && paused) {
                 long duration = System.currentTimeMillis() - startPauseTime;
                 String durationString = DurationFormatUtils.formatDuration(duration, "H:mm:ss", true);
-                String msg = String.format("Welcome back! Server resumed after %s.", durationString);
 
-                if (ConfigHandler.enableWelcomeMessage.get()) {
-                    player.sendMessage(new StringTextComponent(msg));
+                if (ConfigHandler.Common.ENABLE_WELCOME_MESSAGE.get()) {
+                    String msg = String.format("Welcome back! Server resumed after %s.", durationString);
+                    Component message = new TranslatableComponent(msg);
+
+                    sp.displayClientMessage(new TextComponent(msg), true);
                 }
 
                 unpauseServer(String.format("onPlayerLogin, %s", durationString), world);
@@ -60,41 +66,44 @@ public class ServerEventHandler {
     }
 
     @SubscribeEvent
-    public void onPlayerLogout(final PlayerEvent.PlayerLoggedOutEvent event) {
-        PlayerList playerList = event.getPlayer().getServer().getPlayerList();
-        ServerWorld world = (ServerWorld)event.getPlayer().getEntityWorld().getWorld();
+    public static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
+        Player player = event.getPlayer() instanceof Player ? (Player) event.getPlayer() : null;
 
-        if (playerList.getCurrentPlayerCount() <= 1) {
-            pauseServer(world, "onPlayerLogout");
+        if (player != null && !player.level.isClientSide) {
+            ServerPlayer sp = (ServerPlayer) player;
+            PlayerList playerList = sp.getServer().getPlayerList();
+            ServerLevel world = sp.getLevel();
+
+            if (playerList.getPlayerCount() <= 1) {
+                pauseServer(world, "onPlayerLogout");
+            }
         }
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onWorldTick(TickEvent.WorldTickEvent event) {
-        ServerWorld world = (ServerWorld)event.world.getWorld();
+    public static void onWorldTick(TickEvent.WorldTickEvent event) {
         long now = System.currentTimeMillis();
+        ServerLevel world = (ServerLevel)event.world;
 
-        if (world == null) {
+        if (event.side != LogicalSide.SERVER) {
             return;
         }
         else if (paused && event.phase == TickEvent.Phase.START) {
-            if (world.getGameRules().getBoolean(GameRules.DO_DAYLIGHT_CYCLE)) {
-                for(ServerWorld serverworld : event.world.getServer().getWorlds()) {
-                    serverworld.setGameTime(gameTime);
-                    serverworld.setDayTime(dayTime);
-                }
+            if (world.getGameRules().getBoolean(GameRules.RULE_DAYLIGHT)) {
+                world.getServer().getWorldData().overworldData().setGameTime(gameTime);
+                world.setDayTime(dayTime);
             }
 
             if (raining) {
-                world.getWorldInfo().setRaining(raining);
-                world.getWorldInfo().setRainTime(rainTime);
+                world.getServer().getWorldData().overworldData().setRaining(raining);
+                world.getServer().getWorldData().overworldData().setRainTime(rainTime);
                 if (thundering) {
-                    world.getWorldInfo().setThundering(thundering);
-                    world.getWorldInfo().setThunderTime(thunderTime);
+                    world.getServer().getWorldData().overworldData().setThundering(thundering);
+                    world.getServer().getWorldData().overworldData().setThunderTime(thunderTime);
                 }
             }
             else {
-                world.getWorldInfo().setClearWeatherTime(weatherTime);
+                world.getServer().getWorldData().overworldData().setClearWeatherTime(weatherTime);
             }
         }
 
@@ -102,65 +111,67 @@ public class ServerEventHandler {
         if ((now - checkTime) > 1000) {
             PlayerList playerList = world.getServer().getPlayerList();
             checkTime = now;
-            if (paused && playerList.getCurrentPlayerCount() >= 1) {
+
+            if (paused && playerList.getPlayerCount() >= 1) {
                 unpauseServer("onWorldTick", world);
             }
-            else if (!paused && playerList.getCurrentPlayerCount() <= 0) {
+            else if (!paused && playerList.getPlayerCount() <= 0) {
                 pauseServer(world, "onWorldTick");
             }
         }
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onWorldLoad(WorldEvent.Load event) {
-        ServerWorld world = (ServerWorld)event.getWorld();
-        randomTickSpeed = world.getGameRules().getInt(GameRules.RANDOM_TICK_SPEED);
-        doFireTick = world.getGameRules().getBoolean(GameRules.DO_FIRE_TICK);
+    public static void onWorldLoad(WorldEvent.Load event) {
+        ServerLevel world = (ServerLevel)event.getWorld();
+
+        randomTickSpeed = world.getGameRules().getInt(GameRules.RULE_RANDOMTICKING);
+        doFireTick = world.getGameRules().getBoolean(GameRules.RULE_DOFIRETICK);
     }
 
-    private void pauseServer(ServerWorld world, String ctx) {
+    private static void pauseServer(ServerLevel world, String ctx) {
         startPauseTime = System.currentTimeMillis();
         gameTime = world.getGameTime();
         dayTime = world.getDayTime();
 
-        raining = world.getWorldInfo().isRaining();
-        randomTickSpeed = world.getGameRules().getInt(GameRules.RANDOM_TICK_SPEED);
-        doFireTick = world.getGameRules().getBoolean(GameRules.DO_FIRE_TICK);
+        raining = world.getServer().getWorldData().overworldData().isRaining();
+        randomTickSpeed = world.getGameRules().getInt(GameRules.RULE_RANDOMTICKING);
+        doFireTick = world.getGameRules().getBoolean(GameRules.RULE_DOFIRETICK);
 
-        ReadyPlayerFun.logger.info(
+        ReadyPlayerFun.LOGGER.info(
                 String.format("Pausing server %s at %d, %d", ctx, gameTime, dayTime));
 
-        world.getGameRules().write().putInt(GameRules.RANDOM_TICK_SPEED.getName(), 0);
-        world.getGameRules().get(GameRules.DO_FIRE_TICK).set(false, null);
+        world.getGameRules().getRule(GameRules.RULE_DOFIRETICK).set(false, null);
+        world.getGameRules().getRule(GameRules.RULE_RANDOMTICKING).set(0, null);
 
         if (raining) {
-            thundering = world.getWorldInfo().isThundering();
-            rainTime = world.getWorldInfo().getRainTime();
+            thundering = world.getServer().getWorldData().overworldData().isThundering();
+            rainTime = world.getServer().getWorldData().overworldData().getRainTime();
             if (thundering) {
-                thunderTime = world.getWorldInfo().getThunderTime();
+                thunderTime = world.getServer().getWorldData().overworldData().getThunderTime();
             }
         }
         else {
-            weatherTime = world.getWorldInfo().getClearWeatherTime();
+            weatherTime = world.getServer().getWorldData().overworldData().getClearWeatherTime();
         }
 
-        ReadyPlayerFun.logger.debug(String.format("(pauseServer) Raining: %s rainTime: %d, thundering: %s, thunderTime %d, weatherTime: %d, randomTickSpeed: %d, doFireTick: %s",
+        ReadyPlayerFun.LOGGER.debug(String.format("(pauseServer) Raining: %s rainTime: %d, thundering: %s, thunderTime %d, weatherTime: %d, randomTickSpeed: %d, doFireTick: %s",
                     raining, rainTime, thundering, thunderTime, weatherTime, randomTickSpeed, doFireTick));
 
         paused = true;
     }
 
-    private void unpauseServer(String ctx, ServerWorld world) {
-        world.getGameRules().get(GameRules.DO_FIRE_TICK).set(doFireTick, null);
-        world.getGameRules().write().putInt(GameRules.RANDOM_TICK_SPEED.getName(), randomTickSpeed);
+    private static void unpauseServer(String ctx, ServerLevel world) {
+        world.getGameRules().getRule(GameRules.RULE_DOFIRETICK).set(doFireTick, null);
+        world.getGameRules().getRule(GameRules.RULE_RANDOMTICKING).set(randomTickSpeed, null);
 
-        ReadyPlayerFun.logger.info(
+        ReadyPlayerFun.LOGGER.info(
                 String.format("Unpausing server: %s at %d, %d", ctx, gameTime, dayTime));
 
         paused = false;
     }
 
-    public boolean isPaused() {
+    public static boolean isPaused() {
         return paused;
     }
 
