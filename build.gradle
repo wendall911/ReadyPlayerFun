@@ -143,6 +143,7 @@ curseforge {
                 relations {
                     optionalLibrary 'configured'
                     optionalLibrary 'catalogue'
+                    optionalLibrary 'hourglass'
                     optionalLibrary 'serene-seasons'
                 }
             }
