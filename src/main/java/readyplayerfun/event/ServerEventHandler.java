@@ -85,10 +85,10 @@ public class ServerEventHandler {
         long now = System.currentTimeMillis();
         ServerLevel world = event.world instanceof ServerLevel ? (ServerLevel)event.world : null;
 
-        if (event.side != LogicalSide.SERVER || world == null || event.phase != TickEvent.Phase.END) {
+        if (event.side != LogicalSide.SERVER || world == null) {
             return;
         }
-        else if (paused && event.phase == TickEvent.Phase.START) {
+        else if (paused && event.phase == TickEvent.Phase.END) {
             if (world.getGameRules().getBoolean(GameRules.RULE_DAYLIGHT)) {
                 world.getServer().getWorldData().overworldData().setGameTime(gameTime);
                 world.setDayTime(dayTime);
