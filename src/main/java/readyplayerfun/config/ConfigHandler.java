@@ -33,13 +33,6 @@ public class ConfigHandler {
 
         public static BooleanValue ENABLE_WELCOME_MESSAGE;
 
-        private static final List<String> SPAM_LIST = Arrays.asList("mods");
-        private static String[] spamStrings = new String[] {
-            "Season time skipped"
-        };
-        private final ConfigValue<List<? extends String>> SPAM;
-        private static Predicate<Object> spamTextValidator = s -> s instanceof String;
-
         static {
             Pair<Common, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(Common::new);
 
@@ -51,20 +44,6 @@ public class ConfigHandler {
             ENABLE_WELCOME_MESSAGE = builder
                 .comment("Show status message on first player login after server unpaused.")
                 .define("ENABLE_WELCOME_MESSAGE", true);
-            SPAM = builder
-                .comment("Filter out spam from log. Looking at you Serene Seasons.")
-                .defineListAllowEmpty(SPAM_LIST, getFields(spamStrings), spamTextValidator);
-        }
-
-
-        private static Supplier<List<? extends String>> getFields(String[] strings) {
-            return () -> Arrays.asList(strings);
-        }
-
-        public static List<String> getSpamStrings() {
-            List<String> strings = (List<String>) CONFIG.SPAM.get();
-
-            return strings;
         }
 
     }

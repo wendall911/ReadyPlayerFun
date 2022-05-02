@@ -1,5 +1,6 @@
 package readyplayerfun.event;
 
+import net.minecraft.world.level.LevelAccessor;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 
 import net.minecraft.network.chat.Component;
@@ -123,9 +124,9 @@ public class ServerEventHandler {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onWorldLoad(WorldEvent.Load event) {
-        ServerLevel world = (ServerLevel)event.getWorld();
+        ServerLevel world = event.getWorld() instanceof ServerLevel ? (ServerLevel)event.getWorld() : null;
 
-        if (!world.isClientSide()) {
+        if (world != null && !world.isClientSide()) {
             randomTickSpeed = world.getGameRules().getInt(GameRules.RULE_RANDOMTICKING);
             doFireTick = world.getGameRules().getBoolean(GameRules.RULE_DOFIRETICK);
         }
@@ -133,11 +134,11 @@ public class ServerEventHandler {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onWorldUnLoad(WorldEvent.Unload event) {
-        ServerLevel world = (ServerLevel)event.getWorld();
+        LevelAccessor world = event.getWorld() instanceof LevelAccessor ? event.getWorld() : null;
 
-        if (!world.isClientSide()) {
-            world.getGameRules().getRule(GameRules.RULE_DOFIRETICK).set(doFireTick, null);
-            world.getGameRules().getRule(GameRules.RULE_RANDOMTICKING).set(randomTickSpeed, null);
+        if (world != null && !world.isClientSide()) {
+            world.getLevelData().getGameRules().getRule(GameRules.RULE_DOFIRETICK).set(doFireTick, null);
+            world.getLevelData().getGameRules().getRule(GameRules.RULE_RANDOMTICKING).set(randomTickSpeed, null);
         }
     }
 
