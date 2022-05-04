@@ -11,6 +11,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.storage.PrimaryLevelData;
 
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -38,8 +39,8 @@ public class ServerEventHandler {
     private static int weatherTime;
     private static int rainTime;
     private static int thunderTime;
-    private static boolean doFireTick;
-    private static int randomTickSpeed;
+    private static boolean doFireTick = ConfigHandler.Server.DO_FIRE_TICK.get();
+    private static int randomTickSpeed = ConfigHandler.Server.RANDOM_TICK_SPEED.get();
 
     @SubscribeEvent
     public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
@@ -126,36 +127,46 @@ public class ServerEventHandler {
     public static void onWorldLoad(WorldEvent.Load event) {
         ServerLevel world = event.getWorld() instanceof ServerLevel ? (ServerLevel)event.getWorld() : null;
 
+        if (!(world.getLevelData() instanceof PrimaryLevelData info)) return;
+
+        GameRules rules = info.getGameRules();
+
         if (world != null && !world.isClientSide()) {
-            randomTickSpeed = world.getGameRules().getInt(GameRules.RULE_RANDOMTICKING);
-            doFireTick = world.getGameRules().getBoolean(GameRules.RULE_DOFIRETICK);
+            randomTickSpeed = rules.getInt(GameRules.RULE_RANDOMTICKING);
+            doFireTick = rules.getBoolean(GameRules.RULE_DOFIRETICK);
         }
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onWorldUnLoad(WorldEvent.Unload event) {
         LevelAccessor world = event.getWorld() instanceof LevelAccessor ? event.getWorld() : null;
+        GameRules rules = world.getLevelData().getGameRules();
 
         if (world != null && !world.isClientSide()) {
-            world.getLevelData().getGameRules().getRule(GameRules.RULE_DOFIRETICK).set(doFireTick, null);
-            world.getLevelData().getGameRules().getRule(GameRules.RULE_RANDOMTICKING).set(randomTickSpeed, null);
+            rules.getRule(GameRules.RULE_DOFIRETICK).set(doFireTick, null);
+            rules.getRule(GameRules.RULE_RANDOMTICKING).set(randomTickSpeed, null);
         }
     }
 
     private static void pauseServer(ServerLevel world, String ctx) {
+        GameRules rules = world.getLevelData().getGameRules();
+
         startPauseTime = System.currentTimeMillis();
         gameTime = world.getGameTime();
         dayTime = world.getDayTime();
 
         raining = world.getServer().getWorldData().overworldData().isRaining();
-        randomTickSpeed = world.getGameRules().getInt(GameRules.RULE_RANDOMTICKING);
-        doFireTick = world.getGameRules().getBoolean(GameRules.RULE_DOFIRETICK);
+
+        if (!ConfigHandler.Server.FORCE_GAME_RULES.get()) {
+            randomTickSpeed = rules.getInt(GameRules.RULE_RANDOMTICKING);
+            doFireTick = rules.getBoolean(GameRules.RULE_DOFIRETICK);
+        }
 
         ReadyPlayerFun.LOGGER.info(
                 String.format("Pausing server %s at %d, %d", ctx, gameTime, dayTime));
 
-        world.getGameRules().getRule(GameRules.RULE_DOFIRETICK).set(false, null);
-        world.getGameRules().getRule(GameRules.RULE_RANDOMTICKING).set(0, null);
+        rules.getRule(GameRules.RULE_DOFIRETICK).set(false, null);
+        rules.getRule(GameRules.RULE_RANDOMTICKING).set(0, null);
 
         if (raining) {
             thundering = world.getServer().getWorldData().overworldData().isThundering();
