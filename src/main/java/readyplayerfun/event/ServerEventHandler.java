@@ -127,14 +127,14 @@ public class ServerEventHandler {
     public static void onWorldLoad(WorldEvent.Load event) {
         ServerLevel world = event.getWorld() instanceof ServerLevel ? (ServerLevel)event.getWorld() : null;
 
+        if (world == null) return;
+        if (world.isClientSide()) return;
         if (!(world.getLevelData() instanceof PrimaryLevelData info)) return;
 
         GameRules rules = info.getGameRules();
 
-        if (world != null && !world.isClientSide()) {
-            randomTickSpeed = rules.getInt(GameRules.RULE_RANDOMTICKING);
-            doFireTick = rules.getBoolean(GameRules.RULE_DOFIRETICK);
-        }
+        randomTickSpeed = rules.getInt(GameRules.RULE_RANDOMTICKING);
+        doFireTick = rules.getBoolean(GameRules.RULE_DOFIRETICK);
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
