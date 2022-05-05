@@ -11,7 +11,7 @@ license="MIT"
   updateJSONURL="https://raw.githubusercontent.com/wendall911/ReadyPlayerFun/1.18.x/files/updates.json"
   authors="wendall911"
   credits="ashar42"
-  logoFile="assets/readyplayerfun/textures/gui/logo.png"
+  logoFile="logo.png"
 
 [[dependencies.readyplayerfun]]
     modId="forge"
