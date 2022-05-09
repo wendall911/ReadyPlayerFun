@@ -72,7 +72,7 @@ public class ConfigHandler {
         Server(ForgeConfigSpec.Builder builder) {
             FORCE_GAME_RULES = builder
                 .comment("Force game rules regardless of server setting for 'paused' rules.")
-                .define("FORCE_GAME_RULES", false);
+                .define("FORCE_GAME_RULES", true);
             DO_FIRE_TICK = builder
                 .comment("doFireTick")
                 .define("DO_FIRE_TICK", true);

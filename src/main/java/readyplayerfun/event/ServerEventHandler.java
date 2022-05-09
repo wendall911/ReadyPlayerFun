@@ -41,6 +41,7 @@ public class ServerEventHandler {
     private static int thunderTime;
     private static boolean doFireTick = ConfigHandler.Server.DO_FIRE_TICK.get();
     private static int randomTickSpeed = ConfigHandler.Server.RANDOM_TICK_SPEED.get();
+    private static boolean loaded = false;
 
     @SubscribeEvent
     public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
@@ -87,7 +88,7 @@ public class ServerEventHandler {
         long now = System.currentTimeMillis();
         ServerLevel world = event.world instanceof ServerLevel ? (ServerLevel)event.world : null;
 
-        if (event.side != LogicalSide.SERVER || world == null) {
+        if (!loaded || event.side != LogicalSide.SERVER || world == null) {
             return;
         }
         else if (paused && event.phase == TickEvent.Phase.END) {
@@ -133,14 +134,24 @@ public class ServerEventHandler {
 
         GameRules rules = info.getGameRules();
 
-        randomTickSpeed = rules.getInt(GameRules.RULE_RANDOMTICKING);
-        doFireTick = rules.getBoolean(GameRules.RULE_DOFIRETICK);
+        if (ConfigHandler.Server.FORCE_GAME_RULES.get()) {
+            rules.getRule(GameRules.RULE_DOFIRETICK).set(doFireTick, null);
+            rules.getRule(GameRules.RULE_RANDOMTICKING).set(randomTickSpeed, null);
+        }
+        else {
+            randomTickSpeed = rules.getInt(GameRules.RULE_RANDOMTICKING);
+            doFireTick = rules.getBoolean(GameRules.RULE_DOFIRETICK);
+        }
+
+        loaded = true;
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onWorldUnLoad(WorldEvent.Unload event) {
         LevelAccessor world = event.getWorld() instanceof LevelAccessor ? event.getWorld() : null;
         GameRules rules = world.getLevelData().getGameRules();
+
+        loaded = false;
 
         if (world != null && !world.isClientSide()) {
             rules.getRule(GameRules.RULE_DOFIRETICK).set(doFireTick, null);
