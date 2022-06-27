@@ -1,16 +1,14 @@
 package readyplayerfun.event;
 
-import net.minecraft.world.level.LevelAccessor;
-import org.apache.commons.lang3.time.DurationFormatUtils;
+import java.util.Objects;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.storage.PrimaryLevelData;
 
 import net.minecraftforge.event.world.WorldEvent;
@@ -20,6 +18,8 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.LogicalSide;
+
+import org.apache.commons.lang3.time.DurationFormatUtils;
 
 import readyplayerfun.config.ConfigHandler;
 import readyplayerfun.ReadyPlayerFun;
@@ -45,11 +45,11 @@ public class ServerEventHandler {
 
     @SubscribeEvent
     public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
-        Player player = event.getPlayer() instanceof Player ? (Player) event.getPlayer() : null;
+        Player player = event.getPlayer() != null ? event.getPlayer() : null;
 
         if (player != null && !player.level.isClientSide) {
             ServerPlayer sp = (ServerPlayer) player;
-            PlayerList playerList = sp.getServer().getPlayerList();
+            PlayerList playerList = Objects.requireNonNull(sp.getServer()).getPlayerList();
             ServerLevel world = sp.getLevel();
 
             if (playerList.getPlayerCount() >= 1 && paused) {
@@ -58,9 +58,9 @@ public class ServerEventHandler {
 
                 if (ConfigHandler.Common.ENABLE_WELCOME_MESSAGE.get()) {
                     String msg = String.format("Welcome back! Server resumed after %s.", durationString);
-                    Component message = new TranslatableComponent(msg);
+                    Component message = Component.translatable(msg);
 
-                    sp.displayClientMessage(new TextComponent(msg), true);
+                    sp.displayClientMessage(message, true);
                 }
 
                 unpauseServer(String.format("onPlayerLogin, %s", durationString), world);
@@ -70,11 +70,11 @@ public class ServerEventHandler {
 
     @SubscribeEvent
     public static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
-        Player player = event.getPlayer() instanceof Player ? (Player) event.getPlayer() : null;
+        Player player = event.getPlayer() != null ? event.getPlayer() : null;
 
         if (player != null && !player.level.isClientSide) {
             ServerPlayer sp = (ServerPlayer) player;
-            PlayerList playerList = sp.getServer().getPlayerList();
+            PlayerList playerList = Objects.requireNonNull(sp.getServer()).getPlayerList();
             ServerLevel world = sp.getLevel();
 
             if (playerList.getPlayerCount() <= 1) {
@@ -148,12 +148,13 @@ public class ServerEventHandler {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onWorldUnLoad(WorldEvent.Unload event) {
-        LevelAccessor world = event.getWorld() instanceof LevelAccessor ? event.getWorld() : null;
-        GameRules rules = world.getLevelData().getGameRules();
+        LevelAccessor world = event.getWorld() != null ? event.getWorld() : null;
 
         loaded = false;
 
         if (world != null && !world.isClientSide()) {
+            GameRules rules = world.getLevelData().getGameRules();
+
             rules.getRule(GameRules.RULE_DOFIRETICK).set(doFireTick, null);
             rules.getRule(GameRules.RULE_RANDOMTICKING).set(randomTickSpeed, null);
         }
