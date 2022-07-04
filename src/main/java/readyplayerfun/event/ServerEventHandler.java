@@ -17,6 +17,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
 import net.minecraftforge.fml.LogicalSide;
 
 import org.apache.commons.lang3.time.DurationFormatUtils;
@@ -39,8 +40,8 @@ public class ServerEventHandler {
     private static int weatherTime;
     private static int rainTime;
     private static int thunderTime;
-    private static boolean doFireTick = ConfigHandler.Server.DO_FIRE_TICK.get();
-    private static int randomTickSpeed = ConfigHandler.Server.RANDOM_TICK_SPEED.get();
+    private static boolean doFireTick;
+    private static int randomTickSpeed;
     private static boolean loaded = false;
 
     @SubscribeEvent
@@ -158,6 +159,12 @@ public class ServerEventHandler {
             rules.getRule(GameRules.RULE_DOFIRETICK).set(doFireTick, null);
             rules.getRule(GameRules.RULE_RANDOMTICKING).set(randomTickSpeed, null);
         }
+    }
+
+    @SubscribeEvent
+    public static void onModConfigLoad(ModConfigEvent.Loading event) {
+        doFireTick = ConfigHandler.Server.DO_FIRE_TICK.get();
+        randomTickSpeed = ConfigHandler.Server.RANDOM_TICK_SPEED.get();
     }
 
     private static void pauseServer(ServerLevel world, String ctx) {
