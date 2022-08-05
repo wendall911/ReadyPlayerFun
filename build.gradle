@@ -136,6 +136,7 @@ curseforge {
             id = project.rpfcurseId
             changelog = file('build/libs/' + project.getName() + '-' + version + '-changelog.txt')
             releaseType = cf_release_type
+            addGameVersion('Forge')
             "${cf_versions}".split(',').each {
                 addGameVersion "${it}"
             }

@@ -11,10 +11,10 @@ import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.storage.PrimaryLevelData;
 
-import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
@@ -46,7 +46,7 @@ public class ServerEventHandler {
 
     @SubscribeEvent
     public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
-        Player player = event.getPlayer() != null ? event.getPlayer() : null;
+        Player player = event.getEntity() != null ? event.getEntity() : null;
 
         if (player != null && !player.level.isClientSide) {
             ServerPlayer sp = (ServerPlayer) player;
@@ -71,7 +71,7 @@ public class ServerEventHandler {
 
     @SubscribeEvent
     public static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
-        Player player = event.getPlayer() != null ? event.getPlayer() : null;
+        Player player = event.getEntity() != null ? event.getEntity() : null;
 
         if (player != null && !player.level.isClientSide) {
             ServerPlayer sp = (ServerPlayer) player;
@@ -85,9 +85,9 @@ public class ServerEventHandler {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void onWorldTick(TickEvent.WorldTickEvent event) {
+    public static void onLevelTick(TickEvent.LevelTickEvent event) {
         long now = System.currentTimeMillis();
-        ServerLevel world = event.world instanceof ServerLevel ? (ServerLevel)event.world : null;
+        ServerLevel world = event.level instanceof ServerLevel ? (ServerLevel) event.level : null;
 
         if (!loaded || event.side != LogicalSide.SERVER || world == null) {
             return;
@@ -126,8 +126,8 @@ public class ServerEventHandler {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void onWorldLoad(WorldEvent.Load event) {
-        ServerLevel world = event.getWorld() instanceof ServerLevel ? (ServerLevel)event.getWorld() : null;
+    public static void onLevelLoad(LevelEvent.Load event) {
+        ServerLevel world = event.getLevel() instanceof ServerLevel ? (ServerLevel) event.getLevel() : null;
 
         if (world == null) return;
         if (world.isClientSide()) return;
@@ -148,8 +148,8 @@ public class ServerEventHandler {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void onWorldUnLoad(WorldEvent.Unload event) {
-        LevelAccessor world = event.getWorld() != null ? event.getWorld() : null;
+    public static void onLevelUnLoad(LevelEvent.Unload event) {
+        LevelAccessor world = event.getLevel() != null ? event.getLevel() : null;
 
         loaded = false;
 
@@ -212,10 +212,6 @@ public class ServerEventHandler {
                 String.format("Unpausing server: %s at %d, %d", ctx, gameTime, dayTime));
 
         paused = false;
-    }
-
-    public static boolean isPaused() {
-        return paused;
     }
 
 }
