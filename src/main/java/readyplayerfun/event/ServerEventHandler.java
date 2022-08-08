@@ -17,7 +17,6 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
 import net.minecraftforge.fml.LogicalSide;
 
 import org.apache.commons.lang3.time.DurationFormatUtils;
@@ -136,6 +135,8 @@ public class ServerEventHandler {
         GameRules rules = info.getGameRules();
 
         if (ConfigHandler.Server.FORCE_GAME_RULES.get()) {
+            doFireTick = ConfigHandler.Server.DO_FIRE_TICK.get();
+            randomTickSpeed = ConfigHandler.Server.RANDOM_TICK_SPEED.get();
             rules.getRule(GameRules.RULE_DOFIRETICK).set(doFireTick, null);
             rules.getRule(GameRules.RULE_RANDOMTICKING).set(randomTickSpeed, null);
         }
@@ -159,12 +160,6 @@ public class ServerEventHandler {
             rules.getRule(GameRules.RULE_DOFIRETICK).set(doFireTick, null);
             rules.getRule(GameRules.RULE_RANDOMTICKING).set(randomTickSpeed, null);
         }
-    }
-
-    @SubscribeEvent
-    public static void onModConfigLoad(ModConfigEvent.Loading event) {
-        doFireTick = ConfigHandler.Server.DO_FIRE_TICK.get();
-        randomTickSpeed = ConfigHandler.Server.RANDOM_TICK_SPEED.get();
     }
 
     private static void pauseServer(ServerLevel world, String ctx) {
