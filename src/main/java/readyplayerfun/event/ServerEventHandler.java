@@ -1,6 +1,5 @@
 package readyplayerfun.event;
 
-import net.minecraft.world.level.LevelAccessor;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 
 import net.minecraft.network.chat.Component;
@@ -11,6 +10,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.storage.PrimaryLevelData;
 
 import net.minecraftforge.event.world.WorldEvent;
@@ -19,7 +19,6 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
 import net.minecraftforge.fml.LogicalSide;
 
 import readyplayerfun.config.ConfigHandler;
@@ -136,6 +135,8 @@ public class ServerEventHandler {
         GameRules rules = info.getGameRules();
 
         if (ConfigHandler.Server.FORCE_GAME_RULES.get()) {
+            doFireTick = ConfigHandler.Server.DO_FIRE_TICK.get();
+            randomTickSpeed = ConfigHandler.Server.RANDOM_TICK_SPEED.get();
             rules.getRule(GameRules.RULE_DOFIRETICK).set(doFireTick, null);
             rules.getRule(GameRules.RULE_RANDOMTICKING).set(randomTickSpeed, null);
         }
@@ -149,21 +150,16 @@ public class ServerEventHandler {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onWorldUnLoad(WorldEvent.Unload event) {
-        LevelAccessor world = event.getWorld() instanceof LevelAccessor ? event.getWorld() : null;
-        GameRules rules = world.getLevelData().getGameRules();
+        LevelAccessor world = event.getWorld() != null ? event.getWorld() : null;
 
         loaded = false;
 
         if (world != null && !world.isClientSide()) {
+            GameRules rules = world.getLevelData().getGameRules();
+
             rules.getRule(GameRules.RULE_DOFIRETICK).set(doFireTick, null);
             rules.getRule(GameRules.RULE_RANDOMTICKING).set(randomTickSpeed, null);
         }
-    }
-
-    @SubscribeEvent
-    public static void onModConfigLoad(ModConfigEvent.Loading event) {
-        doFireTick = ConfigHandler.Server.DO_FIRE_TICK.get();
-        randomTickSpeed = ConfigHandler.Server.RANDOM_TICK_SPEED.get();
     }
 
     private static void pauseServer(ServerLevel world, String ctx) {
