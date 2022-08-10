@@ -16,7 +16,7 @@ license="MIT"
 [[dependencies.readyplayerfun]]
     modId="forge"
     mandatory=true
-    versionRange="[39,)"
+    versionRange="${forge_version_range}"
     ordering="AFTER"
     side="SERVER"
 [[dependencies.readyplayerfun]]
@@ -25,3 +25,9 @@ license="MIT"
     versionRange="${mc_version_range}"
     ordering="NONE"
     side="SERVER"
+[[dependencies.readyplayerfun]]
+    modId = "architectury"
+    mandatory = true
+    versionRange = "${architectury_version_range}"
+    ordering = "AFTER"
+    side = "BOTH"

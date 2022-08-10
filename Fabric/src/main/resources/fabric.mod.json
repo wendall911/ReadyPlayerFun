@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "readyplayerfun",
+  "version": "${version}",
+  "name": "Ready Player Fun",
+  "description": "Pause time and seasons when no players are logged in.",
+  "authors": [
+    "wendall911"
+  ],
+  "contact": {
+    "homepage": "https://github.com/wendall911/ReadyPlayerFun",
+    "sources": "https://github.com/wendall911/ReadyPlayerFun"
+  },
+  "license": "BSD",
+  "icon": "logo.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "readyplayerfun.fabric.ReadyPlayerFunFabric"
+    ]
+  },
+  "depends": {
+    "fabric": "*",
+    "minecraft": ">=1.19",
+    "architectury": ">=6.1.39"
+  }
+}

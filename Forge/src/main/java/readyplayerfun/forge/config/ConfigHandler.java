@@ -1,9 +1,4 @@
-package readyplayerfun.config;
-
-import java.util.Arrays;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.List;
+package readyplayerfun.forge.config;
 
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.ForgeConfigSpec.BooleanValue;

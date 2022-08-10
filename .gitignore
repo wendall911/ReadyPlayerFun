@@ -6,3 +6,9 @@ run
 
 # IntelliJ
 .idea
+
+# Architectury
+*.iws
+*.iml
+*.ipr
+.architectury-transformer

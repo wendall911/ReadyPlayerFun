@@ -1,6 +1,6 @@
-package readyplayerfun.proxy;
+package readyplayerfun.forge.proxy;
 
-import readyplayerfun.config.ConfigHandler;
+import readyplayerfun.forge.config.ConfigHandler;
 
 public class CommonProxy {
 
