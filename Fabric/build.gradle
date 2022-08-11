@@ -136,9 +136,9 @@ curseforge {
         apiKey = project.rpfcurseApiKey
         project {
             id = project.rpfcurseId
-            changelog = file(project(":").projectDir.toString() + '/build/libs/' + project.getName() + '-' + version + '-changelog.txt')
+            changelog = file(project(":").projectDir.toString() + '/build/libs/' + rootProject.name + '-' + version + '-changelog.txt')
             releaseType = cf_release_type
-            addGameVersion('Forge')
+            addGameVersion('Fabric')
             "${cf_versions}".split(',').each {
                 addGameVersion "${it}"
             }
