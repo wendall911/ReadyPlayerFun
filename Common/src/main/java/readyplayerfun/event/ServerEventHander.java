@@ -89,7 +89,7 @@ public class ServerEventHander {
         PlayerList playerList = Objects.requireNonNull(sp.getServer()).getPlayerList();
         ServerLevel world = sp.getLevel();
 
-        if (playerList.getPlayerCount() <= 1) {
+        if (loaded && playerList.getPlayerCount() <= 1) {
             pauseServer("onPlayerLogout", world);
         }
     }
