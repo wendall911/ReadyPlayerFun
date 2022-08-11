@@ -24,6 +24,7 @@ import net.minecraft.world.level.storage.PrimaryLevelData;
 
 import org.apache.commons.lang3.time.DurationFormatUtils;
 
+import readyplayerfun.ReadyPlayerFunConfig;
 import readyplayerfun.ReadyPlayerFun;
 
 public class ServerEventHander {
@@ -74,12 +75,13 @@ public class ServerEventHander {
             long duration = System.currentTimeMillis() - startPauseTime;
             String durationString = DurationFormatUtils.formatDuration(duration, "H:mm:ss", true);
 
-            //if (ConfigHandler.Common.ENABLE_WELCOME_MESSAGE.get()) {
-            String msg = String.format("Welcome back! Server resumed after %s.", durationString);
-            Component message = Component.translatable(msg);
 
-            sp.displayClientMessage(message, true);
-            //}
+            if (ReadyPlayerFunConfig.enableWelcomeMessage()) {
+                String msg = String.format("Welcome back! Server resumed after %s.", durationString);
+                Component message = Component.translatable(msg);
+
+                sp.displayClientMessage(message, true);
+            }
 
             unpauseServer(String.format("onPlayerLogin, %s", durationString), world);
         }
@@ -140,25 +142,22 @@ public class ServerEventHander {
         int defaultRandomTickSpeed = 3;
         boolean defaultFireTick = true;
 
-        /*
-        if (ConfigHandler.Server.FORCE_GAME_RULES.get()) {
-            doFireTick = ConfigHandler.Server.DO_FIRE_TICK.get();
-            randomTickSpeed = ConfigHandler.Server.RANDOM_TICK_SPEED.get();
+        if (ReadyPlayerFunConfig.forceGameRules()) {
+            doFireTick = ReadyPlayerFunConfig.doFireTick();
+            randomTickSpeed = ReadyPlayerFunConfig.randomTickSpeed();
             rules.getRule(GameRules.RULE_DOFIRETICK).set(doFireTick, null);
             rules.getRule(GameRules.RULE_RANDOMTICKING).set(randomTickSpeed, null);
         }
         else {
-         */
-        if (level.getGameTime() < 20) {
-            randomTickSpeed = defaultRandomTickSpeed;
-            doFireTick = defaultFireTick;
+            if (level.getGameTime() < 20) {
+                randomTickSpeed = defaultRandomTickSpeed;
+                doFireTick = defaultFireTick;
+            }
+            else {
+                randomTickSpeed = rules.getInt(GameRules.RULE_RANDOMTICKING);
+                doFireTick = rules.getBoolean(GameRules.RULE_DOFIRETICK);
+            }
         }
-        else {
-            randomTickSpeed = rules.getInt(GameRules.RULE_RANDOMTICKING);
-            doFireTick = rules.getBoolean(GameRules.RULE_DOFIRETICK);
-        }
-        //}
-        ReadyPlayerFun.LOGGER.warn("levelLoad: %s %s", rules.getRule(GameRules.RULE_DOFIRETICK), rules.getRule(GameRules.RULE_RANDOMTICKING));
 
         loaded = true;
     }
@@ -176,10 +175,10 @@ public class ServerEventHander {
 
         raining = level.getServer().getWorldData().overworldData().isRaining();
 
-        //if (!ConfigHandler.Server.FORCE_GAME_RULES.get()) {
+        if (ReadyPlayerFunConfig.forceGameRules()) {
             randomTickSpeed = rules.getInt(GameRules.RULE_RANDOMTICKING);
             doFireTick = rules.getBoolean(GameRules.RULE_DOFIRETICK);
-        //}
+        }
 
         ReadyPlayerFun.LOGGER.info(
                 String.format("Pausing server %s at %d, %d", ctx, gameTime, dayTime));

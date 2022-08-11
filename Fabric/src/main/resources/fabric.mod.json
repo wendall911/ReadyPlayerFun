@@ -17,11 +17,14 @@
   "entrypoints": {
     "main": [
       "readyplayerfun.fabric.ReadyPlayerFunFabric"
+    ],
+    "modmenu": [
+      "readyplayerfun.fabric.config.MenuIntegration"
     ]
   },
   "depends": {
     "fabric": "*",
-    "minecraft": ">=1.19",
-    "architectury": ">=6.1.39"
+    "minecraft": ">=${minecraft_short_version}",
+    "architectury": ">=${architectury_version}"
   }
 }

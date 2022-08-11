@@ -10,6 +10,7 @@ import net.minecraftforge.fml.ModLoadingContext;
 import org.apache.commons.lang3.tuple.Pair;
 
 import readyplayerfun.ReadyPlayerFun;
+import readyplayerfun.ReadyPlayerFunConfig;
 
 @Mod.EventBusSubscriber(modid = ReadyPlayerFun.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ConfigHandler {
@@ -41,7 +42,7 @@ public class ConfigHandler {
 
         Common(ForgeConfigSpec.Builder builder) {
             ENABLE_WELCOME_MESSAGE = builder
-                .comment("Show status message on first player login after server unpaused.")
+                .comment(ReadyPlayerFunConfig.WELCOME_MESSAGE)
                 .define("ENABLE_WELCOME_MESSAGE", true);
         }
 
@@ -66,7 +67,7 @@ public class ConfigHandler {
 
         Server(ForgeConfigSpec.Builder builder) {
             FORCE_GAME_RULES = builder
-                .comment("Force game rules regardless of server setting for 'paused' rules.")
+                .comment(ReadyPlayerFunConfig.FORCE_GAME_RULES)
                 .define("FORCE_GAME_RULES", true);
             DO_FIRE_TICK = builder
                 .comment("doFireTick")
