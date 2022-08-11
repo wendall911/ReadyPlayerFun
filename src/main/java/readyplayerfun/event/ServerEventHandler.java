@@ -1,9 +1,15 @@
 package readyplayerfun.event;
 
+import java.util.List;
 import java.util.Objects;
 
 import org.apache.commons.lang3.time.DurationFormatUtils;
 
+import com.mojang.brigadier.ParseResults;
+import com.mojang.brigadier.context.CommandContextBuilder;
+import com.mojang.brigadier.context.ParsedCommandNode;
+
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -12,6 +18,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.storage.PrimaryLevelData;
 
+import net.minecraftforge.event.CommandEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -71,13 +78,13 @@ public class ServerEventHandler {
     public static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
         Player player = event.getPlayer() != null ? event.getPlayer() : null;
 
-        if (player != null && !player.level.isClientSide) {
+        if (loaded && player != null && !player.level.isClientSide) {
             ServerPlayer sp = (ServerPlayer) player;
             PlayerList playerList = Objects.requireNonNull(sp.getServer()).getPlayerList();
             ServerLevel world = sp.getLevel();
 
             if (playerList.getPlayerCount() <= 1) {
-                pauseServer(world, "onPlayerLogout");
+                pauseServer("onPlayerLogout", world);
             }
         }
     }
@@ -118,7 +125,7 @@ public class ServerEventHandler {
                 unpauseServer("onWorldTick", world);
             }
             else if (!paused && playerList.getPlayerCount() <= 0) {
-                pauseServer(world, "onWorldTick");
+                pauseServer("onWorldTick", world);
             }
         }
     }
@@ -126,6 +133,8 @@ public class ServerEventHandler {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onWorldLoad(WorldEvent.Load event) {
         ServerLevel world = event.getWorld() instanceof ServerLevel ? (ServerLevel)event.getWorld() : null;
+        int defaultRandomTickSpeed = 3;
+        boolean defaultFireTick = true;
 
         if (world == null) return;
         if (world.isClientSide()) return;
@@ -140,8 +149,14 @@ public class ServerEventHandler {
             rules.getRule(GameRules.RULE_RANDOMTICKING).set(randomTickSpeed, null);
         }
         else {
-            randomTickSpeed = rules.getInt(GameRules.RULE_RANDOMTICKING);
-            doFireTick = rules.getBoolean(GameRules.RULE_DOFIRETICK);
+            if (world.getGameTime() < 20) {
+                randomTickSpeed = defaultRandomTickSpeed;
+                doFireTick = defaultFireTick;
+            }
+            else {
+                randomTickSpeed = rules.getInt(GameRules.RULE_RANDOMTICKING);
+                doFireTick = rules.getBoolean(GameRules.RULE_DOFIRETICK);
+            }
         }
 
         loaded = true;
@@ -161,7 +176,43 @@ public class ServerEventHandler {
         }
     }
 
-    private static void pauseServer(ServerLevel world, String ctx) {
+    @SubscribeEvent
+    public static void onCommand(CommandEvent event) {
+        ParseResults<CommandSourceStack> results = event.getParseResults();
+        CommandContextBuilder<CommandSourceStack> ctx = results.getContext();
+        List<ParsedCommandNode<CommandSourceStack>> nodes = ctx.getNodes();
+
+        if (nodes.size() < 3) return;
+
+        CommandSourceStack src = ctx.getSource();
+        String commandName = nodes.get(0).getNode().getName();
+        String argument = nodes.get(1).getRange().get(results.getReader());
+        if ("gamerule".equals(commandName)) {
+            ServerLevel level = src.getLevel();
+            boolean cycle = false;
+
+            switch (argument) {
+                case "doFireTick" -> {
+                    cycle = true;
+                    doFireTick = nodes.get(2).getRange().get(results.getReader()).equals("true");
+                }
+                case "randomTickSpeed" -> {
+                    int tickSpeed = Integer.parseInt(nodes.get(2).getRange().get(results.getReader()));
+
+                    if (tickSpeed >= 0) {
+                        cycle = true;
+                        randomTickSpeed = tickSpeed;
+                    }
+                }
+            }
+
+            if (cycle) {
+                cyclePause(level);
+            }
+        }
+    }
+
+    private static void pauseServer(String ctx, ServerLevel world) {
         GameRules rules = world.getLevelData().getGameRules();
 
         startPauseTime = System.currentTimeMillis();
@@ -206,6 +257,17 @@ public class ServerEventHandler {
                 String.format("Unpausing server: %s at %d, %d", ctx, gameTime, dayTime));
 
         paused = false;
+    }
+
+    private static void cyclePause(ServerLevel level) {
+        if (paused) {
+            unpauseServer("gamerule change", level);
+            pauseServer("gamerule change", level);
+        }
+        else {
+            pauseServer("gamerule change", level);
+            unpauseServer("gamerule change", level);
+        }
     }
 
 }
