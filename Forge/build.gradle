@@ -83,7 +83,7 @@ task renameJarForPublication(type: Zip, dependsOn: remapJar) {
     extension "jar"
     metadataCharset "UTF-8"
     destinationDirectory = base.libsDirectory
-    classifier project.name + "-${rootProject.minecraft_version}"
+    classifier project.name + "-${rootProject.minecraft_short_version}-${rootProject.minecraft_version}"
 }
 
 assemble.dependsOn renameJarForPublication
