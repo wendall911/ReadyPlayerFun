@@ -69,7 +69,7 @@ public class ServerEventHander {
 
     public static void onPlayerJoin(ServerPlayer sp) {
         PlayerList playerList = Objects.requireNonNull(sp.getServer()).getPlayerList();
-        ServerLevel world = sp.getLevel();
+        ServerLevel world = sp.serverLevel();
 
         if (playerList.getPlayerCount() >= 1 && paused) {
             long duration = System.currentTimeMillis() - startPauseTime;
@@ -89,7 +89,7 @@ public class ServerEventHander {
 
     public static void onPlayerLogout(ServerPlayer sp) {
         PlayerList playerList = Objects.requireNonNull(sp.getServer()).getPlayerList();
-        ServerLevel world = sp.getLevel();
+        ServerLevel world = sp.serverLevel();
 
         if (loaded && playerList.getPlayerCount() <= 1) {
             pauseServer("onPlayerLogout", world);
