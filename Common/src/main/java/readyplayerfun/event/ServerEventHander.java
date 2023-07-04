@@ -7,12 +7,6 @@ import com.mojang.brigadier.ParseResults;
 import com.mojang.brigadier.context.CommandContextBuilder;
 import com.mojang.brigadier.context.ParsedCommandNode;
 
-import dev.architectury.event.EventResult;
-import dev.architectury.event.events.common.CommandPerformEvent;
-import dev.architectury.event.events.common.LifecycleEvent;
-import dev.architectury.event.events.common.PlayerEvent;
-import dev.architectury.event.events.common.TickEvent;
-
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
@@ -24,7 +18,7 @@ import net.minecraft.world.level.storage.PrimaryLevelData;
 
 import org.apache.commons.lang3.time.DurationFormatUtils;
 
-import readyplayerfun.ReadyPlayerFunConfig;
+import readyplayerfun.config.ConfigHandler;
 import readyplayerfun.ReadyPlayerFun;
 
 public class ServerEventHander {
@@ -42,19 +36,6 @@ public class ServerEventHander {
     private static boolean doFireTick;
     private static int randomTickSpeed;
     private static boolean loaded = false;
-
-    public static void init() {
-        PlayerEvent.PLAYER_JOIN.register(ServerEventHander::onPlayerJoin);
-        PlayerEvent.PLAYER_QUIT.register(ServerEventHander::onPlayerLogout);
-        LifecycleEvent.SERVER_LEVEL_LOAD.register(ServerEventHander::levelLoad);
-        LifecycleEvent.SERVER_STOPPING.register(ServerEventHander::serverStopping);
-        TickEvent.SERVER_LEVEL_POST.register(ServerEventHander::levelPostTick);
-        CommandPerformEvent.EVENT.register((command) -> {
-            ServerEventHander.onCommand(command);
-
-            return EventResult.pass();
-        });
-    }
 
     public static void serverStopping(MinecraftServer server) {
         ServerLevel level = server.overworld();
@@ -76,7 +57,7 @@ public class ServerEventHander {
             String durationString = DurationFormatUtils.formatDuration(duration, "H:mm:ss", true);
 
 
-            if (ReadyPlayerFunConfig.enableWelcomeMessage()) {
+            if (ConfigHandler.Common.enableWelcomeMessage()) {
                 String msg = String.format("Welcome back! Server resumed after %s.", durationString);
                 Component message = Component.translatable(msg);
 
@@ -142,9 +123,9 @@ public class ServerEventHander {
         int defaultRandomTickSpeed = 3;
         boolean defaultFireTick = true;
 
-        if (ReadyPlayerFunConfig.forceGameRules()) {
-            doFireTick = ReadyPlayerFunConfig.doFireTick();
-            randomTickSpeed = ReadyPlayerFunConfig.randomTickSpeed();
+        if (ConfigHandler.Common.forceGameRules()) {
+            doFireTick = ConfigHandler.Common.doFireTick();
+            randomTickSpeed = ConfigHandler.Common.randomTickSpeed();
             rules.getRule(GameRules.RULE_DOFIRETICK).set(doFireTick, null);
             rules.getRule(GameRules.RULE_RANDOMTICKING).set(randomTickSpeed, null);
         }
@@ -162,10 +143,6 @@ public class ServerEventHander {
         loaded = true;
     }
 
-    public static void levelUnload(ServerLevel level) {
-
-    }
-
     private static void pauseServer(String ctx, ServerLevel level) {
         GameRules rules = level.getLevelData().getGameRules();
 
@@ -175,7 +152,7 @@ public class ServerEventHander {
 
         raining = level.getServer().getWorldData().overworldData().isRaining();
 
-        if (ReadyPlayerFunConfig.forceGameRules()) {
+        if (ConfigHandler.Common.forceGameRules()) {
             randomTickSpeed = rules.getInt(GameRules.RULE_RANDOMTICKING);
             doFireTick = rules.getBoolean(GameRules.RULE_DOFIRETICK);
         }
@@ -224,8 +201,7 @@ public class ServerEventHander {
         }
     }
 
-    private static void onCommand(CommandPerformEvent event) {
-        ParseResults<CommandSourceStack> results = event.getResults();
+    public static void onCommand(ParseResults<CommandSourceStack> results) {
         CommandContextBuilder<CommandSourceStack> ctx = results.getContext();
         List<ParsedCommandNode<CommandSourceStack>> nodes = ctx.getNodes();
 
@@ -234,6 +210,7 @@ public class ServerEventHander {
         CommandSourceStack src = ctx.getSource();
         String commandName = nodes.get(0).getNode().getName();
         String argument = nodes.get(1).getRange().get(results.getReader());
+
         if ("gamerule".equals(commandName)) {
             ServerLevel level = src.getLevel();
             boolean cycle = false;

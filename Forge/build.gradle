@@ -1,37 +1,113 @@
-plugins {
-    id "com.github.johnrengelman.shadow" version "7.1.2"
-    id "com.matthewprenger.cursegradle"
+buildscript {
+	repositories {
+		maven { url = 'https://maven.minecraftforge.net' }
+		maven { url = 'https://plugins.gradle.org/m2/' }
+		maven {
+			name = 'ParchmentMC'
+			url = 'https://maven.parchmentmc.org/'
+		}
+		mavenCentral()
+	}
+	dependencies {
+		classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
+		classpath group: 'org.parchmentmc', name: 'librarian', version: '1.+'
+		classpath group: 'gradle.plugin.com.matthewprenger', name: 'CurseGradle', version: '1.4.0'
+        classpath 'se.bjurr.gitchangelog:git-changelog-gradle-plugin:1.71.8'
+	}
+}
+apply plugin: 'java'
+apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'maven-publish'
+apply plugin: 'org.parchmentmc.librarian.forgegradle'
+apply plugin: 'com.matthewprenger.cursegradle'
+apply plugin: 'se.bjurr.gitchangelog.git-changelog-gradle-plugin'
+
+archivesBaseName = "${mod_id}"
+version = "${minecraft_version}-${mod_version}-FORGE"
+
+repositories {
+
+	maven {
+		name = "C4's Maven"
+		url = "https://maven.theillusivec4.top/"
+	}
+
 }
 
-architectury {
-    platformSetupLoomIde()
-    forge()
+
+
+minecraft {
+	mappings channel: "${mappings_channel}", version: "${mappings_version}-${minecraft_version}"
+
+	if (project.hasProperty('forge_ats_enabled') && project.findProperty('forge_ats_enabled').toBoolean()) {
+		// This location is hardcoded in Forge and can not be changed.
+		// https://github.com/MinecraftForge/MinecraftForge/blob/be1698bb1554f9c8fa2f58e32b9ab70bc4385e60/fmlloader/src/main/java/net/minecraftforge/fml/loading/moddiscovery/ModFile.java#L123
+		accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+		project.logger.debug('Forge Access Transformers are enabled for this project.')
+	}
+
+	runs {
+		client {
+			workingDirectory project.file('run')
+			ideaModule "${rootProject.name}.${project.name}.main"
+			taskName 'Client'
+			mods {
+				modClientRun {
+					source sourceSets.main
+					source project(":Common").sourceSets.main
+				}
+			}
+		}
+
+		server {
+			workingDirectory project.file('run')
+			ideaModule "${rootProject.name}.${project.name}.main"
+			taskName 'Server'
+			mods {
+				modServerRun {
+					source sourceSets.main
+					source project(":Common").sourceSets.main
+				}
+			}
+		}
+	}
 }
 
-loom {
-    accessWidenerPath = project(":Common").loom.accessWidenerPath
+sourceSets.main.resources.srcDir 'src/generated/resources'
 
-    forge {
-        convertAccessWideners = true
-        extraAccessWideners.add loom.accessWidenerPath.get().asFile.name
+dependencies {
+	minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+	compileOnly project(":Common")
+
+    implementation fg.deobf(group: 'com.illusivesoulworks.spectrelib', name: 'spectrelib-forge', version: "${spectrelib_range}")
+    jarJar fg.deobf(group: 'com.illusivesoulworks.spectrelib', name: 'spectrelib-forge', version: "${spectrelib_range}") {
+        jarJar.pin(it, "${spectrelib_version}")
     }
 }
 
-configurations {
-    common
-    shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
-    compileClasspath.extendsFrom common
-    runtimeClasspath.extendsFrom common
-    developmentForge.extendsFrom common
+compileJava {
+	source(project(":Common").sourceSets.main.allSource)
+	options.compilerArgs << "-Xlint:all,-classfile,-processing,-deprecation,-serial" << "-Werror"
 }
 
-dependencies {
-    forge "net.minecraftforge:forge:${rootProject.forge_version}"
-    // Remove the next line if you don't want to depend on the API
-    modApi "dev.architectury:architectury-forge:${rootProject.architectury_version}"
+tasks.withType(JavaCompile) {
+	source(project(":Common").sourceSets.main.allSource)
+}
 
-    common(project(path: ":Common", configuration: "namedElements")) { transitive false }
-    shadowCommon(project(path: ":Common", configuration: "transformProductionForge")) { transitive = false }
+def replaceResources = tasks.register("replaceResources", Copy) {
+	it.outputs.upToDateWhen { false }
+
+	it.from(sourceSets.main.resources) {
+		include "META-INF/mods.toml"
+		expand 'version': version, 'forge_mc_version_range': forge_mc_version_range, 'forge_version_range': forge_version_range,
+				'license': license, 'mod_id': mod_id, 'mod_author': mod_author, 'mod_description': mod_description,
+				'mod_name': mod_name, 'issue_tracker': issue_tracker, 'mod_credits': mod_credits, 'mod_update_url': mod_update_url
+	}
+	it.from(project(":Common").sourceSets.main.resources) {
+		include "pack.mcmeta"
+		expand 'mod_name': mod_name
+	}
+	it.into "$buildDir/resources/main/"
 }
 
 def updates = tasks.register("generateUpdates", Copy) {
@@ -41,127 +117,81 @@ def updates = tasks.register("generateUpdates", Copy) {
 
     it.from("../files/templates/") {
         include 'updates.json'
-        expand 'mod_version': mod_version
+        expand 'update_version': version
     }
 
     it.into '../files/'
 }
 
 processResources {
-    inputs.property "version", project.version
+	from project(":Common").sourceSets.main.resources
+	exclude('META-INF/mods.toml')
+	exclude('pack.mcmeta')
+	exclude '.cache'
+	duplicatesStrategy(DuplicatesStrategy.FAIL)
 
-    filesMatching("META-INF/mods.toml") {
-        expand 'version': project.version,
-            'mc_version_range': project.mc_version_range,
-            'forge_version_range': project.forge_version_range,
-            "loader_version": project.loader_version,
-            "architectury_version_range": project.architectury_version_range
-    }
-
-    configure {
+	configure {
+        finalizedBy(replaceResources)
         finalizedBy(updates)
     }
 }
 
-shadowJar {
-    exclude "fabric.mod.json"
-    exclude "architectury-common.accessWidener"
-    exclude "architectury.common.json"
-
-    configurations = [project.configurations.shadowCommon]
-    classifier "dev-shadow"
-}
-
-remapJar {
-    input.set shadowJar.archiveFile
-    dependsOn shadowJar
-    classifier null
-}
-
-task renameJarForPublication(type: Zip, dependsOn: remapJar) {
-    from remapJar.archiveFile.map { zipTree(it) }
-    extension "jar"
-    metadataCharset "UTF-8"
-    destinationDirectory = base.libsDirectory
-    classifier project.name + "-${rootProject.minecraft_version}"
-}
-
-assemble.dependsOn renameJarForPublication
-
 jar {
-    classifier "dev"
+	manifest {
+		attributes([
+			"Specification-Title": "${mod_name}",
+			"Specification-Vendor": "wendall911",
+			"Specification-Version": "1", // We are version 1 of ourselves
+			"Implementation-Title": "${mod_name}",
+			"Implementation-Version": "${archiveVersion.get()}",
+			"Implementation-Vendor" :"wendall911"
+		])
+	}
+	finalizedBy 'reobfJar'
 }
 
-sourcesJar {
-    def commonSources = project(":Common").sourcesJar
-    dependsOn commonSources
-    from commonSources.archiveFile.map { zipTree(it) }
+reobf {
+    jarJar {}
 }
 
-jar.finalizedBy('signJar')
-
-task deobfJar(type: Jar) {
-    from sourceSets.main.output
-    classifier = 'deobf'
+tasks.jarJar.configure {
+    archiveClassifier.set("")
 }
 
-// Jar Signing
-import net.minecraftforge.gradle.common.tasks.SignJar
-
-task signJar(type: SignJar, dependsOn: jar) {
-    // Skip the task if our secret data isn't available
-    onlyIf {
-        project.hasProperty('keyStore')
-    }
-
-    keyStore = project.keyStore // This needs to be a path to the keystore file
-    alias = project.keyStoreAlias
-    storePass = project.keyStorePass
-    keyPass = project.keyStoreKeyPass
-    inputFile = jar.archivePath
-    outputFile = jar.archivePath
-}
-
-components.java {
-    withVariantsFromConfiguration(project.configurations.shadowRuntimeElements) {
-        skip()
-    }
-}
-
-publishing {
-    publications {
-        mavenForge(MavenPublication) {
-            artifactId = rootProject.archives_base_name + "-forge"
-            from components.java
-        }
-    }
-
-    repositories {
-    }
+jarJar {
+    enable()
 }
 
 curseforge {
     if (project.hasProperty('rpfcurseApiKey')) {
-        apiKey = project.rpfcurseApiKey
         project {
+            apiKey = project.rpfcurseApiKey
             id = project.rpfcurseId
-            changelog = file(project(":").projectDir.toString() + '/build/libs/' + rootProject.name + '-' + version + '-changelog.txt')
-            releaseType = cf_release_type
-            addGameVersion('Forge')
+			releaseType = "${cf_release}"
+			changelog = file(project(":").projectDir.toString() + '/build/libs/changelog.txt')
+			addGameVersion "Java 17"
+            addGameVersion "Forge"
             "${cf_versions}".split(',').each {
                 addGameVersion "${it}"
             }
-            mainArtifact(renameJarForPublication) {
-                relations {
-                    requiredDependency 'architectury-api'
-                    optionalDependency 'configured'
-                    optionalDependency 'catalogue'
-                    optionalDependency 'hourglass'
-                    optionalDependency 'serene-seasons'
-                }
+            relations {
+                optionalDependency 'configured'
+                optionalDependency 'catalogue'
+                optionalDependency 'hourglass'
+                optionalDependency 'serene-seasons'
             }
         }
     }
 }
 
-tasks.curseforge.dependsOn build
+tasks.curseforge.dependsOn('build')
+
+task changelog(type: se.bjurr.gitchangelog.plugin.gradle.GitChangelogTask) {
+    file = new File(project(":").projectDir.toString() + '/build/libs/changelog.txt');
+    templateContent = file(project(":").projectDir.toString() + '/files/templates/changelog.mustache').getText('UTF-8');
+    fromRepo = file("$projectDir");
+    toRef = "HEAD";
+    fromRef = "${last_mod_version}";
+}
+
+tasks.build.dependsOn('changelog')

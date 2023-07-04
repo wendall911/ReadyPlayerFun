@@ -1,0 +1,23 @@
+#!/bin/bash
+
+STATUS="$(git status --porcelain)"
+
+if [ -z "$STATUS" ]
+then
+  LAST_TAG="$(git rev-list --tags --max-count=1)"
+  HEAD="$(git rev-parse HEAD)"
+
+  if [ "$LAST_TAG" = "$HEAD" ]
+  then
+    ./gradlew :Forge:build :Fabric:build || exit 1
+    ./gradlew :Forge:curseforge :Fabric:curseforge || exit 1
+  else
+    echo $LAST_TAG
+    echo $HEAD
+    echo "Repo is dirty, or not tagged for release."
+  fi
+else
+  echo "Repo is dirty:"
+  echo $STATUS
+  exit 1
+fi

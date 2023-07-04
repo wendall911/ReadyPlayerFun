@@ -1,17 +1,22 @@
 package readyplayerfun;
 
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
+import com.illusivesoulworks.spectrelib.config.SpectreConfig;
+import com.illusivesoulworks.spectrelib.config.SpectreConfigLoader;
 
-import readyplayerfun.event.ServerEventHander;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import readyplayerfun.config.ConfigHandler;
 
 public class ReadyPlayerFun {
 
     public static final String MODID = "readyplayerfun";
-    public static final Logger LOGGER = LogManager.getFormatterLogger(ReadyPlayerFun.MODID);
+    public static final String MOD_NAME = "Ready Player Fun";
+    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_NAME);
    
     public static void init() {
-        ServerEventHander.init();
+        SpectreConfig commonConfig = SpectreConfigLoader.add(SpectreConfig.Type.COMMON, ConfigHandler.COMMON_SPEC, MODID);
+        commonConfig.addLoadListener((config, flag) -> ConfigHandler.init());
     }
 
 }
