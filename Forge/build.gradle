@@ -11,7 +11,7 @@ buildscript {
 	dependencies {
 		classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
 		classpath group: 'org.parchmentmc', name: 'librarian', version: '1.+'
-		classpath group: 'gradle.plugin.com.matthewprenger', name: 'CurseGradle', version: '1.4.0'
+        classpath group: 'net.darkhax.curseforgegradle', name: 'CurseForgeGradle', version: '1.+'
         classpath 'se.bjurr.gitchangelog:git-changelog-gradle-plugin:1.71.8'
 	}
 }
@@ -19,7 +19,7 @@ apply plugin: 'java'
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'maven-publish'
 apply plugin: 'org.parchmentmc.librarian.forgegradle'
-apply plugin: 'com.matthewprenger.cursegradle'
+apply plugin: 'net.darkhax.curseforgegradle'
 apply plugin: 'se.bjurr.gitchangelog.git-changelog-gradle-plugin'
 
 archivesBaseName = "${mod_id}"
@@ -33,8 +33,6 @@ repositories {
 	}
 
 }
-
-
 
 minecraft {
 	mappings channel: "${mappings_channel}", version: "${mappings_version}-${minecraft_version}"
@@ -162,25 +160,21 @@ jarJar {
     enable()
 }
 
-curseforge {
+task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
     if (project.hasProperty('rpfcurseApiKey')) {
-        project {
-            apiKey = project.rpfcurseApiKey
-            id = project.rpfcurseId
-			releaseType = "${cf_release}"
-			changelog = file(project(":").projectDir.toString() + '/build/libs/changelog.txt')
-			addGameVersion "Java 17"
-            addGameVersion "Forge"
-            "${cf_versions}".split(',').each {
-                addGameVersion "${it}"
-            }
-            relations {
-                optionalDependency 'configured'
-                optionalDependency 'catalogue'
-                optionalDependency 'hourglass'
-                optionalDependency 'serene-seasons'
-            }
+        apiToken = project.rpfcurseApiKey
+        def mainFile = upload(project.rpfcurseId, file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar"))
+        mainFile.changelog = file(project(":").projectDir.toString() + '/build/libs/changelog.txt')
+        mainFile.addJavaVersion('Java 17')
+        mainFile.addModLoader('Forge')
+        mainFile.releaseType = "${cf_release}"
+        "${cf_versions}".split(',').each {
+            mainFile.addGameVersion("${it}")
         }
+        mainFile.addOptional('configured')
+        mainFile.addOptional('catalogue')
+        mainFile.addOptional('hourglass')
+        mainFile.addOptional('serene-seasons')
     }
 }
 

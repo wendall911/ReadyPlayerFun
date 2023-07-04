@@ -1,7 +1,7 @@
 plugins {
 	id 'fabric-loom' version '0.12-SNAPSHOT'
 	id 'idea'
-	id 'com.matthewprenger.cursegradle' version '1.4.0'
+    id 'net.darkhax.curseforgegradle' version '1.+'
 }
 
 version = "${minecraft_version}-${mod_version}-FABRIC"
@@ -81,26 +81,18 @@ tasks.withType(JavaCompile) {
 	source(project(":Common").sourceSets.main.allSource)
 }
 
-curseforge {
+task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
     if (project.hasProperty('rpfcurseApiKey')) {
-        project {
-            apiKey = project.rpfcurseApiKey
-            id = project.rpfcurseId
-			releaseType = "${cf_release}"
-			changelog = file(project(":").projectDir.toString() + '/build/libs/changelog.txt')
-			addGameVersion "Java 17"
-            addGameVersion "Fabric"
-            "${cf_versions}".split(',').each {
-                addGameVersion "${it}"
-            }
-			relations {
-				requiredDependency 'fabric-api'
-            }
+        apiToken = project.rpfcurseApiKey
+        def mainFile = upload(project.rpfcurseId, file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar"))
+        mainFile.changelog = file(project(":").projectDir.toString() + '/build/libs/changelog.txt')
+        mainFile.addJavaVersion('Java 17')
+        mainFile.addModLoader('Fabric')
+        mainFile.releaseType = "${cf_release}"
+        "${cf_versions}".split(',').each {
+            mainFile.addGameVersion("${it}")
         }
-
-		options {
-			forgeGradleIntegration = false
-		}
+        mainFile.addRequirement('fabric-api')
     }
 }
 
