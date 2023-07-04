@@ -1,24 +1,11 @@
 plugins {
-    id "com.github.johnrengelman.shadow" version "7.1.2"
-    id "com.matthewprenger.cursegradle"
+    id 'fabric-loom' version '0.12-SNAPSHOT'
+    id 'idea'
+    id 'com.matthewprenger.cursegradle' version '1.4.0'
 }
 
-architectury {
-    platformSetupLoomIde()
-    fabric()
-}
-
-loom {
-    accessWidenerPath = project(":Common").loom.accessWidenerPath
-}
-
-configurations {
-    common
-    shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
-    compileClasspath.extendsFrom common
-    runtimeClasspath.extendsFrom common
-    developmentFabric.extendsFrom common
-}
+version = "${minecraft_version}-${mod_version}-FABRIC"
+archivesBaseName = "${mod_id}"
 
 repositories {
     maven {
@@ -30,123 +17,89 @@ repositories {
 }
 
 dependencies {
-    modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
-    modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
-    // Remove the next line if you don't want to depend on the API
-    modApi "dev.architectury:architectury-fabric:${rootProject.architectury_version}"
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    mappings(loom.layered {
+        officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-${fabric_parchment_mc_version}:${fabric_parchment_version}@zip")
+    })
 
-    common(project(path: ":Common", configuration: "namedElements")) {
-        transitive = false
-    }
-    shadowCommon(project(path: ":Common", configuration: "transformProductionFabric")) {
-        transitive = false
-    }
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+
+    modImplementation group: 'com.illusivesoulworks.spectrelib', name: 'spectrelib-fabric', version: "${spectrelib_range}"
+
     modImplementation("com.terraformersmc:modmenu:4.0.4") {
         transitive = false
     }
-    modImplementation("me.shedaniel.cloth:cloth-config-fabric:${rootProject.cloth_config_version}") {
-        exclude(group: "net.fabricmc")
-        exclude(group: "net.fabricmc.fabric-api")
+
+    implementation group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.1'
+    implementation project(":Common")
+
+    include group: 'com.illusivesoulworks.spectrelib', name: 'spectrelib-fabric', version: "${spectrelib_version}"
+
+}
+
+loom {
+    runs {
+        client {
+            client()
+            setConfigName("Fabric Client")
+            ideConfigGenerated(true)
+            runDir("run")
+        }
+        server {
+            server()
+            setConfigName("Fabric Server")
+            ideConfigGenerated(true)
+            runDir("run")
+        }
     }
 }
 
-def updates = tasks.register("generateUpdates", Copy) {
-    it.outputs.upToDateWhen {
-        false
-    }
-
-    it.from("../files/templates/") {
-        include 'updates.json'
-        expand 'mod_version': mod_version
-    }
-
-    it.into '../files/'
+sourceSets.main.resources {
+    srcDir 'src/generated/resources'
 }
 
 processResources {
+    from project(":Common").sourceSets.main.resources
     inputs.property "version", project.version
+    exclude '.cache'
+    duplicatesStrategy(DuplicatesStrategy.FAIL)
 
     filesMatching("fabric.mod.json") {
-        expand "version": project.version,
-            'architectury_version': project.architectury_version,
-            'minecraft_short_version': project.minecraft_short_version
+        expand 'version': project.version, 'fabric_mc_version_range': project.fabric_mc_version_range, 'license': project.license,
+                'mod_id': project.mod_id, 'mod_author': project.mod_author, 'mod_description': project.mod_description,
+                'mod_name': project.mod_name, 'issue_tracker': project.issue_tracker, 'fabric_loader_min_version': fabric_loader_min_version
     }
 
-    configure {
-        finalizedBy(updates)
-    }
-}
-
-shadowJar {
-    exclude "architectury.common.json"
-
-    configurations = [project.configurations.shadowCommon]
-    classifier "dev-shadow"
-}
-
-remapJar {
-    injectAccessWidener = true
-    input.set shadowJar.archiveFile
-    dependsOn shadowJar
-    classifier null
-}
-
-task renameJarForPublication(type: Zip, dependsOn: remapJar) {
-    from remapJar.archiveFile.map { zipTree(it) }
-    extension "jar"
-    metadataCharset "UTF-8"
-    destinationDirectory = base.libsDirectory
-    classifier project.name + "-${rootProject.minecraft_short_version}-${rootProject.minecraft_version}"
-}
-
-assemble.dependsOn renameJarForPublication
-
-jar {
-    classifier "dev"
-}
-
-sourcesJar {
-    def commonSources = project(":Common").sourcesJar
-    dependsOn commonSources
-    from commonSources.archiveFile.map { zipTree(it) }
-}
-
-components.java {
-    withVariantsFromConfiguration(project.configurations.shadowRuntimeElements) {
-        skip()
+    filesMatching("pack.mcmeta") {
+        expand 'mod_name': project.mod_name
     }
 }
 
-publishing {
-    publications {
-        mavenFabric(MavenPublication) {
-            artifactId = rootProject.archives_base_name + "-" + project.name
-            from components.java
-        }
-    }
-
-    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
-    repositories {
-        // Add repositories to publish to here.
-    }
+tasks.withType(JavaCompile) {
+    source(project(":Common").sourceSets.main.allSource)
 }
 
 curseforge {
     if (project.hasProperty('rpfcurseApiKey')) {
-        apiKey = project.rpfcurseApiKey
         project {
+            apiKey = project.rpfcurseApiKey
             id = project.rpfcurseId
-            changelog = file(project(":").projectDir.toString() + '/build/libs/' + rootProject.name + '-' + version + '-changelog.txt')
-            releaseType = cf_release_type
-            addGameVersion('Fabric')
+            releaseType = "${cf_release}"
+            changelog = file(project(":").projectDir.toString() + '/build/libs/changelog.txt')
+            addGameVersion "Java 17"
+            addGameVersion "Fabric"
             "${cf_versions}".split(',').each {
                 addGameVersion "${it}"
             }
-            mainArtifact(renameJarForPublication) {
-                relations {
-                    requiredDependency 'architectury-api'
-                }
+            relations {
+                requiredDependency 'fabric-api'
             }
+        }
+
+        options {
+            forgeGradleIntegration = false
         }
     }
 }
