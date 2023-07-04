@@ -1,0 +1,7 @@
+#!/bin/bash
+
+rm Forge/build/libs/*
+rm Fabric/build/libs/*
+./gradlew :Forge:build :Fabric:build || exit 1
+cp Forge/build/libs/*FORGE.jar ~/tmp/rpf_test/
+cp Fabric/build/libs/*FABRIC.jar ~/tmp/rpf_test/
