@@ -16,7 +16,7 @@ public class ReadyPlayerFun {
    
     public static void init() {
         SpectreConfig commonConfig = SpectreConfigLoader.add(SpectreConfig.Type.COMMON, ConfigHandler.COMMON_SPEC, MODID);
-        commonConfig.addLoadListener((config, flag) -> ConfigHandler.init());
+        commonConfig.addLoadListener(config -> ConfigHandler.init());
     }
 
 }
