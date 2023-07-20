@@ -1,5 +1,5 @@
 modLoader="javafml"
-loaderVersion="${loader_version}"
+loaderVersion="${loader_version_range}"
 license="MIT"
 
 [[mods]]
@@ -16,12 +16,12 @@ license="MIT"
 [[dependencies.readyplayerfun]]
     modId="forge"
     mandatory=true
-    versionRange="[39,)"
+    versionRange="${forge_version_range}"
     ordering="AFTER"
     side="SERVER"
 [[dependencies.readyplayerfun]]
     modId="minecraft"
     mandatory=true
-    versionRange="${mc_version_range}"
+    versionRange="${minecraft_version_range}"
     ordering="NONE"
     side="SERVER"
