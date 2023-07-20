@@ -1,7 +1,8 @@
 plugins {
-	id 'fabric-loom' version '0.12-SNAPSHOT'
-	id 'idea'
+    id 'fabric-loom' version '0.12-SNAPSHOT'
+    id 'idea'
     id 'net.darkhax.curseforgegradle' version '1.+'
+    id 'com.modrinth.minotaur' version '2.+'
 }
 
 version = "${minecraft_version}-${mod_version}-FABRIC"
@@ -81,15 +82,17 @@ tasks.withType(JavaCompile) {
 	source(project(":Common").sourceSets.main.allSource)
 }
 
+def changelogFile = project(":").projectDir.toString() + '/build/libs/changelog.txt'
+
 task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
     if (project.hasProperty('rpfcurseApiKey')) {
         apiToken = project.rpfcurseApiKey
         def mainFile = upload(project.rpfcurseId, file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar"))
-        mainFile.changelog = file(project(":").projectDir.toString() + '/build/libs/changelog.txt')
+        mainFile.changelog = file(changelogFile)
         mainFile.addJavaVersion('Java 17')
         mainFile.addModLoader('Fabric')
-        mainFile.releaseType = "${cf_release}"
-        "${cf_versions}".split(',').each {
+        mainFile.releaseType = "${release_type}"
+        "${release_versions}".split(',').each {
             mainFile.addGameVersion("${it}")
         }
         mainFile.addRequirement('fabric-api')
@@ -97,3 +100,22 @@ task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
 }
 
 tasks.curseforge.dependsOn build
+
+modrinth {
+    if (project.hasProperty('rpfModrinthId')) {
+        token = project.modrinthKey
+        projectId = project.rpfModrinthId
+        version = getVersion()
+        versionType = "${release_type}"
+        if (file(changelogFile).exists()) {
+            changelog = file(changelogFile).text
+        }
+        uploadFile = file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar")
+        gameVersions = "${release_versions}".split(",") as List<String>
+        dependencies {
+            required.project 'fabric-api'
+        }
+    }
+}
+
+tasks.modrinth.dependsOn build
