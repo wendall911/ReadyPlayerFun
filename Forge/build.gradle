@@ -1,40 +1,22 @@
-buildscript {
-	repositories {
-		maven { url = 'https://maven.minecraftforge.net' }
-		maven { url = 'https://plugins.gradle.org/m2/' }
-		maven {
-			name = 'ParchmentMC'
-			url = 'https://maven.parchmentmc.org/'
-		}
-		mavenCentral()
-	}
-	dependencies {
-		classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
-		classpath group: 'org.parchmentmc', name: 'librarian', version: '1.+'
-		classpath group: 'gradle.plugin.com.matthewprenger', name: 'CurseGradle', version: '1.4.0'
-        classpath 'se.bjurr.gitchangelog:git-changelog-gradle-plugin:1.71.8'
-	}
+plugins {
+    id 'idea'
+    id 'maven-publish'
+    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
+    id 'org.parchmentmc.librarian.forgegradle' version '1.+'
+    id 'net.darkhax.curseforgegradle' version '1.+'
+    id 'se.bjurr.gitchangelog.git-changelog-gradle-plugin' version '1.71.8'
+    id 'com.modrinth.minotaur' version '2.+'
 }
-apply plugin: 'java'
-apply plugin: 'net.minecraftforge.gradle'
-apply plugin: 'maven-publish'
-apply plugin: 'org.parchmentmc.librarian.forgegradle'
-apply plugin: 'com.matthewprenger.cursegradle'
-apply plugin: 'se.bjurr.gitchangelog.git-changelog-gradle-plugin'
+
+repositories {
+    maven {
+        name = "C4's Maven"
+        url = "https://maven.theillusivec4.top/"
+    }
+}
 
 archivesBaseName = "${mod_id}"
 version = "${minecraft_version}-${mod_version}-FORGE"
-
-repositories {
-
-	maven {
-		name = "C4's Maven"
-		url = "https://maven.theillusivec4.top/"
-	}
-
-}
-
-
 
 minecraft {
 	mappings channel: "${mappings_channel}", version: "${mappings_version}-${minecraft_version}"
@@ -91,64 +73,30 @@ compileJava {
 }
 
 tasks.withType(JavaCompile) {
-	source(project(":Common").sourceSets.main.allSource)
+    source(project(":Common").sourceSets.main.allSource)
 }
 
-def replaceResources = tasks.register("replaceResources", Copy) {
-	it.outputs.upToDateWhen { false }
-
-	it.from(sourceSets.main.resources) {
-		include "META-INF/mods.toml"
-		expand 'version': version, 'forge_mc_version_range': forge_mc_version_range, 'forge_version_range': forge_version_range,
-				'license': license, 'mod_id': mod_id, 'mod_author': mod_author, 'mod_description': mod_description,
-				'mod_name': mod_name, 'issue_tracker': issue_tracker, 'mod_credits': mod_credits, 'mod_update_url': mod_update_url
-	}
-	it.from(project(":Common").sourceSets.main.resources) {
-		include "pack.mcmeta"
-		expand 'mod_name': mod_name
-	}
-	it.into "$buildDir/resources/main/"
-}
-
-def updates = tasks.register("generateUpdates", Copy) {
-    it.outputs.upToDateWhen {
-        false
-    }
-
-    it.from("../files/templates/") {
-        include 'updates.json'
-        expand 'update_version': version
-    }
-
-    it.into '../files/'
-}
+def resourceTargets = ['META-INF/mods.toml', 'pack.mcmeta', '*.mixins.json']
+def replaceProperties = [
+    'version': version, 'forge_mc_version_range': forge_mc_version_range, 'forge_version_range': forge_version_range,
+    'license': license, 'mod_id': mod_id, 'mod_author': mod_author, 'mod_description': mod_description,
+    'mod_name': mod_name, 'issue_tracker': issue_tracker, 'mod_credits': mod_credits, 'mod_update_url': mod_update_url
+]
 
 processResources {
-	from project(":Common").sourceSets.main.resources
-	exclude('META-INF/mods.toml')
-	exclude('pack.mcmeta')
-	exclude '.cache'
-	duplicatesStrategy(DuplicatesStrategy.FAIL)
+    from project(":Common").sourceSets.main.resources
+    duplicatesStrategy(DuplicatesStrategy.FAIL)
+    inputs.properties replaceProperties
+    replaceProperties.put 'project', project
 
-	configure {
-        finalizedBy(replaceResources)
-        finalizedBy(updates)
+    filesMatching(resourceTargets) {
+        expand replaceProperties
     }
 }
 
-jar {
-	manifest {
-		attributes([
-			"Specification-Title": "${mod_name}",
-			"Specification-Vendor": "wendall911",
-			"Specification-Version": "1", // We are version 1 of ourselves
-			"Implementation-Title": "${mod_name}",
-			"Implementation-Version": "${archiveVersion.get()}",
-			"Implementation-Vendor" :"wendall911"
-		])
-	}
-	finalizedBy 'reobfJar'
-}
+tasks.jarJar.finalizedBy('reobfJar')
+reobfJarJar.dependsOn('jar')
+jar.finalizedBy('reobfJar')
 
 reobf {
     jarJar {}
@@ -162,29 +110,21 @@ jarJar {
     enable()
 }
 
-curseforge {
-    if (project.hasProperty('rpfcurseApiKey')) {
-        project {
-            apiKey = project.rpfcurseApiKey
-            id = project.rpfcurseId
-			releaseType = "${cf_release}"
-			changelog = file(project(":").projectDir.toString() + '/build/libs/changelog.txt')
-			addGameVersion "Java 17"
-            addGameVersion "Forge"
-            "${cf_versions}".split(',').each {
-                addGameVersion "${it}"
-            }
-            relations {
-                optionalDependency 'configured'
-                optionalDependency 'catalogue'
-                optionalDependency 'hourglass'
-                optionalDependency 'serene-seasons'
-            }
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId project.group
+            artifactId project.archivesBaseName
+            version project.version
+            artifact jar
+        }
+    }
+    repositories {
+        maven {
+            url "file://" + System.getenv("local_maven")
         }
     }
 }
-
-tasks.curseforge.dependsOn('build')
 
 task changelog(type: se.bjurr.gitchangelog.plugin.gradle.GitChangelogTask) {
     file = new File(project(":").projectDir.toString() + '/build/libs/changelog.txt');
@@ -194,4 +134,59 @@ task changelog(type: se.bjurr.gitchangelog.plugin.gradle.GitChangelogTask) {
     fromRef = "${last_mod_version}";
 }
 
-tasks.build.dependsOn('changelog')
+def updates = tasks.register("generateUpdates", Copy) {
+    it.outputs.upToDateWhen {
+        false
+    }
+
+    it.from("../files/templates/") {
+        include 'updates.json'
+        expand 'version': version, 'minecraft_version': minecraft_version
+    }
+
+    it.into '../files/'
+}
+
+tasks.generateUpdates.mustRunAfter('jar')
+
+tasks.build.dependsOn('changelog', 'generateUpdates')
+
+def changelogFile = project(":").projectDir.toString() + '/build/libs/changelog.txt'
+
+task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
+    if (project.hasProperty('rpfcurseApiKey')) {
+        apiToken = project.rpfcurseApiKey
+        def mainFile = upload(project.rpfcurseId, file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar"))
+        mainFile.changelog = file(changelogFile)
+        mainFile.addJavaVersion('Java 17')
+        mainFile.addModLoader('Forge')
+        mainFile.releaseType = "${release_type}"
+        "${release_versions}".split(',').each {
+            mainFile.addGameVersion("${it}")
+        }
+        mainFile.addOptional('catalogue')
+        mainFile.addOptional('hourglass')
+        mainFile.addOptional('erene-seasons')
+    }
+}
+
+tasks.curseforge.dependsOn build
+
+modrinth {
+    if (project.hasProperty('rpfModrinthId')) {
+        token = project.modrinthKey
+        projectId = project.rpfModrinthId
+        version = getVersion()
+        versionType = "${release_type}"
+        if (file(changelogFile).exists()) {
+            changelog = file(changelogFile).text
+        }
+        uploadFile = file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar")
+        gameVersions = "${release_versions}".split(",") as List<String>
+        dependencies {
+            optional.project 'hourglass'
+        }
+    }
+}
+
+tasks.modrinth.dependsOn build
