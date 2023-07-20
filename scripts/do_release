@@ -9,8 +9,12 @@ then
 
   if [ "$LAST_TAG" = "$HEAD" ]
   then
-    ./gradlew :Forge:build :Fabric:build || exit 1
-    ./gradlew :Forge:curseforge :Fabric:curseforge || exit 1
+    ./gradlew :Forge:build || exit 1
+    ./gradlew :Forge:curseforge || exit 1
+    ./gradlew :Forge:modrinth || exit 1
+    ./gradlew :Fabric:build || exit 1
+    ./gradlew :Fabric:curseforge || exit 1
+    ./gradlew :Fabric:modrinth || exit 1
   else
     echo $LAST_TAG
     echo $HEAD
