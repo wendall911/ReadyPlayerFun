@@ -1,7 +1,6 @@
 {
   "homepage": "https://minecraft.curseforge.com/projects/readyplayerfun",
   "promos": {
-<<<<<<< HEAD
     "1.19-latest": "1.19-${version}",
     "1.19-recommended": "1.19-${version}",
     "1.19.1-latest": "1.19.1-${version}",
