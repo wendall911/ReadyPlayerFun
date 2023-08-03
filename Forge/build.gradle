@@ -16,7 +16,7 @@ repositories {
 }
 
 archivesBaseName = "${mod_id}"
-version = "${minecraft_short_version}-${minecraft_version}-${mod_version}-FORGE"
+version = "${minecraft_version}-${mod_version}-FORGE"
 
 minecraft {
 	mappings channel: "${mappings_channel}", version: "${mappings_version}-${minecraft_version}"
@@ -80,7 +80,7 @@ def resourceTargets = ['META-INF/mods.toml', 'pack.mcmeta', '*.mixins.json']
 def replaceProperties = [
     'version': version, 'forge_mc_version_range': forge_mc_version_range, 'forge_version_range': forge_version_range,
     'license': license, 'mod_id': mod_id, 'mod_author': mod_author, 'mod_description': mod_description,
-    'mod_name': mod_name, 'issue_tracker': issue_tracker, 'mod_credits': mod_credits, 'mod_update_url': mod_update_url
+    'mod_name': mod_name, 'issue_tracker': issue_tracker, 'mod_credits': mod_credits, 'mod_update_branch': mod_update_branch
 ]
 
 processResources {
@@ -131,7 +131,7 @@ task changelog(type: se.bjurr.gitchangelog.plugin.gradle.GitChangelogTask) {
     templateContent = file(project(":").projectDir.toString() + '/files/templates/changelog.mustache').getText('UTF-8');
     fromRepo = file("$projectDir");
     toRef = "HEAD";
-    fromRef = "${last_mod_version}";
+    fromRef = "${minecraft_version}-${last_mod_version}";
 }
 
 def updates = tasks.register("generateUpdates", Copy) {

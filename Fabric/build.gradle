@@ -6,7 +6,7 @@ plugins {
     id 'com.modrinth.minotaur' version '2.+'
 }
 
-version = "${minecraft_short_version}-${minecraft_version}-${mod_version}-FABRIC"
+version = "${minecraft_version}-${mod_version}-FABRIC"
 archivesBaseName = "${mod_id}"
 
 repositories {
