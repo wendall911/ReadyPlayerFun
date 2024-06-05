@@ -95,8 +95,8 @@ processResources {
 }
 
 tasks.jarJar.finalizedBy('reobfJar')
-reobfJarJar.dependsOn('jar')
-jar.finalizedBy('reobfJar')
+
+jar.finalizedBy('reobfJarJar')
 
 reobf {
     jarJar {}
