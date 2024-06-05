@@ -6,6 +6,7 @@ plugins {
     id 'net.darkhax.curseforgegradle' version '1.+'
     id 'se.bjurr.gitchangelog.git-changelog-gradle-plugin' version '1.71.8'
     id 'com.modrinth.minotaur' version '2.+'
+    id 'io.freefair.lombok' version '8.6'
 }
 
 repositories {
@@ -43,6 +44,7 @@ minecraft {
 
 		server {
 			workingDirectory project.file('run')
+            arg 'nogui'
 			ideaModule "${rootProject.name}.${project.name}.main"
 			taskName 'Server'
 			mods {
@@ -95,8 +97,7 @@ processResources {
 }
 
 tasks.jarJar.finalizedBy('reobfJar')
-reobfJarJar.dependsOn('jar')
-jar.finalizedBy('reobfJar')
+jar.finalizedBy('reobfJarJar')
 
 reobf {
     jarJar {}

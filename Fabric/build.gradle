@@ -1,9 +1,9 @@
 plugins {
-
     id 'fabric-loom' version '1.2-SNAPSHOT'
     id 'idea'
     id 'net.darkhax.curseforgegradle' version '1.+'
     id 'com.modrinth.minotaur' version '2.+'
+    id 'io.freefair.lombok' version '8.6'
 }
 
 version = "${minecraft_version}-${mod_version}-FABRIC"
