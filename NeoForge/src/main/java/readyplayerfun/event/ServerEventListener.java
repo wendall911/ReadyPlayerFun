@@ -6,12 +6,11 @@ import net.minecraft.world.entity.player.Player;
 
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.LogicalSide;
 import net.neoforged.neoforge.event.CommandEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
-import net.neoforged.neoforge.event.TickEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 public class ServerEventListener {
 
@@ -57,10 +56,8 @@ public class ServerEventListener {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)
-    public void levelPostTick(TickEvent.LevelTickEvent event) {
-        if (event.side == LogicalSide.SERVER && event.phase == TickEvent.Phase.END) {
-            ServerEventHander.levelPostTick((ServerLevel) event.level);
-        }
+    public void levelPostTick(ServerTickEvent.Post event) {
+        event.getServer().getAllLevels().forEach(ServerEventHander::levelPostTick);
     }
 
 }
