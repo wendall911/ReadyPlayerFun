@@ -2,6 +2,7 @@ package readyplayerfun.mixin;
 
 import net.minecraft.network.Connection;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.players.PlayerList;
 
 import org.spongepowered.asm.mixin.Mixin;
@@ -15,7 +16,7 @@ import readyplayerfun.event.ServerEventHander;
 public class MixinPlayerList {
 
     @Inject(method = "placeNewPlayer", at = @At("RETURN"))
-    private void injectPlaceNewPlayer(Connection connection, ServerPlayer sp, CallbackInfo ci) {
+    private void injectPlaceNewPlayer(Connection connection, ServerPlayer sp, CommonListenerCookie cookie, CallbackInfo ci) {
         ServerEventHander.onPlayerJoin(sp);
     }
 

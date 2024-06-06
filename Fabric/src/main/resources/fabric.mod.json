@@ -17,7 +17,7 @@
     "main": [
       "readyplayerfun.ReadyPlayerFunFabric"
     ],
-    "spectrelib": [
+    "spectrelib-config": [
       "readyplayerfun.FabricConfigInitializer"
     ]
   },
