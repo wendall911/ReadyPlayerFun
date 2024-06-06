@@ -1,86 +1,47 @@
 plugins {
-    id 'fabric-loom' version '1.2-SNAPSHOT'
-    id 'idea'
+    id 'multiloader-loader'
+    id 'fabric-loom' version '1.6-SNAPSHOT'
     id 'net.darkhax.curseforgegradle' version '1.+'
     id 'com.modrinth.minotaur' version '2.+'
     id 'io.freefair.lombok' version '8.6'
 }
 
-version = "${minecraft_version}-${mod_version}-FABRIC"
+version = fabric_mod_version
 archivesBaseName = "${mod_id}"
 
-repositories {
-    maven {
-        url "https://maven.terraformersmc.com/releases"
-    }
-    maven {
-        url "https://maven.shedaniel.me/"
-    }
-}
-
 dependencies {
-	minecraft "com.mojang:minecraft:${minecraft_version}"
-	mappings(loom.layered {
-		officialMojangMappings()
-		parchment("org.parchmentmc.data:parchment-${fabric_parchment_mc_version}:${fabric_parchment_version}@zip")
-	})
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    mappings(loom.layered {
+        officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-${parchment_mc_version}:${parchment_version}@zip")
+    })
 
-	modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
 
-    modImplementation group: 'com.illusivesoulworks.spectrelib', name: 'spectrelib-fabric', version: "${spectrelib_range}"
+    modImplementation "com.illusivesoulworks.spectrelib:spectrelib-fabric:${spectrelib_version}+${minecraft_version}"
+    include "com.illusivesoulworks.spectrelib:spectrelib-fabric:${spectrelib_version}+${minecraft_version}"
 
-    modImplementation("com.terraformersmc:modmenu:4.0.4") {
-        transitive = false
-    }
+    implementation group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.1'
 
-	implementation group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.1'
-	implementation project(":Common")
-
-    include group: 'com.illusivesoulworks.spectrelib', name: 'spectrelib-fabric', version: "${spectrelib_version}"
-
+    include group: 'com.illusivesoulworks.spectrelib', name: 'spectrelib-fabric', version: "${spectrelib_version}+${minecraft_version}"
 }
 
 loom {
-	runs {
-		client {
-			client()
-			setConfigName("Fabric Client")
-			ideConfigGenerated(true)
-			runDir("run")
-		}
-		server {
-			server()
-			setConfigName("Fabric Server")
-			ideConfigGenerated(true)
-			runDir("run")
-		}
-	}
-}
-
-sourceSets.main.resources {
-	srcDir 'src/generated/resources'
-}
-
-processResources {
-	from project(":Common").sourceSets.main.resources
-    inputs.property "version", project.version
-	exclude '.cache'
-	duplicatesStrategy(DuplicatesStrategy.FAIL)
-
-    filesMatching("fabric.mod.json") {
-		expand 'version': project.version, 'fabric_mc_version_range': project.fabric_mc_version_range, 'license': project.license,
-				'mod_id': project.mod_id, 'mod_author': project.mod_author, 'mod_description': project.mod_description,
-				'mod_name': project.mod_name, 'issue_tracker': project.issue_tracker, 'fabric_loader_min_version': fabric_loader_min_version
+    runs {
+        client {
+            client()
+            setConfigName("Fabric Client")
+            ideConfigGenerated(true)
+            runDir("run")
+        }
+        server {
+            server()
+            setConfigName("Fabric Server")
+            ideConfigGenerated(true)
+            runDir("run")
+        }
     }
-
-	filesMatching("pack.mcmeta") {
-		expand 'mod_name': project.mod_name
-	}
-}
-
-tasks.withType(JavaCompile) {
-	source(project(":Common").sourceSets.main.allSource)
 }
 
 def changelogFile = project(":").projectDir.toString() + '/build/libs/changelog.txt'
@@ -100,8 +61,6 @@ task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
     }
 }
 
-tasks.curseforge.dependsOn build
-
 modrinth {
     if (project.hasProperty('rpfModrinthId')) {
         token = project.modrinthKey
@@ -118,5 +77,3 @@ modrinth {
         }
     }
 }
-
-tasks.modrinth.dependsOn build

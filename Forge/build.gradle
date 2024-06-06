@@ -1,130 +1,76 @@
 plugins {
-    id 'idea'
-    id 'maven-publish'
-    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
-    id 'org.parchmentmc.librarian.forgegradle' version '1.+'
+    id 'multiloader-loader'
+    id 'net.minecraftforge.gradle' version '[6.0.24,6.2)'
     id 'net.darkhax.curseforgegradle' version '1.+'
     id 'se.bjurr.gitchangelog.git-changelog-gradle-plugin' version '1.71.8'
     id 'com.modrinth.minotaur' version '2.+'
+    id 'org.parchmentmc.librarian.forgegradle' version '1.+'
     id 'io.freefair.lombok' version '8.6'
 }
 
-repositories {
-    maven {
-        name = "C4's Maven"
-        url = "https://maven.theillusivec4.top/"
+archivesBaseName = "${mod_id}"
+version = forge_mod_version
+
+minecraft {
+    mappings channel: "${mappings_channel}", version: "${parchment_version}-${parchment_mc_version}"
+    reobf = false
+    copyIdeResources = true
+
+    runs {
+        client {
+            workingDirectory file('runs/client')
+            ideaModule "${rootProject.name}.${project.name}.main"
+            taskName 'Client'
+            mods {
+                modClientRun {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        server {
+            workingDirectory file('runs/server')
+            ideaModule "${rootProject.name}.${project.name}.main"
+            taskName 'Server'
+            arg 'nogui'
+            mods {
+                modServerRun {
+                    source sourceSets.main
+                }
+            }
+        }
     }
 }
 
-archivesBaseName = "${mod_id}"
-version = "${minecraft_version}-${mod_version}-FORGE"
-
-minecraft {
-	mappings channel: "${mappings_channel}", version: "${mappings_version}-${minecraft_version}"
-
-	if (project.hasProperty('forge_ats_enabled') && project.findProperty('forge_ats_enabled').toBoolean()) {
-		// This location is hardcoded in Forge and can not be changed.
-		// https://github.com/MinecraftForge/MinecraftForge/blob/be1698bb1554f9c8fa2f58e32b9ab70bc4385e60/fmlloader/src/main/java/net/minecraftforge/fml/loading/moddiscovery/ModFile.java#L123
-		accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
-		project.logger.debug('Forge Access Transformers are enabled for this project.')
-	}
-
-	runs {
-		client {
-			workingDirectory project.file('run')
-			ideaModule "${rootProject.name}.${project.name}.main"
-			taskName 'Client'
-			mods {
-				modClientRun {
-					source sourceSets.main
-					source project(":Common").sourceSets.main
-				}
-			}
-		}
-
-		server {
-			workingDirectory project.file('run')
-            arg 'nogui'
-			ideaModule "${rootProject.name}.${project.name}.main"
-			taskName 'Server'
-			mods {
-				modServerRun {
-					source sourceSets.main
-					source project(":Common").sourceSets.main
-				}
-			}
-		}
-	}
-}
-
-sourceSets.main.resources.srcDir 'src/generated/resources'
-
 dependencies {
-	minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-	compileOnly project(":Common")
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+    // Hack fix for now, force jopt-simple to be exactly 5.0.4 because Mojang ships that version, but some transtive dependencies request 6.0+
+    implementation('net.sf.jopt-simple:jopt-simple:5.0.4') { version { strictly '5.0.4' } }
 
     implementation fg.deobf(group: 'com.illusivesoulworks.spectrelib', name: 'spectrelib-forge', version: "${spectrelib_range}")
     jarJar fg.deobf(group: 'com.illusivesoulworks.spectrelib', name: 'spectrelib-forge', version: "${spectrelib_range}") {
-        jarJar.pin(it, "${spectrelib_version}")
+        jarJar.pin(it, "${spectrelib_version}+${minecraft_version}")
     }
 }
 
-compileJava {
-	source(project(":Common").sourceSets.main.allSource)
-	options.compilerArgs << "-Xlint:all,-classfile,-processing,-deprecation,-serial" << "-Werror"
-}
+jar.finalizedBy('jarJar')
 
-tasks.withType(JavaCompile) {
-    source(project(":Common").sourceSets.main.allSource)
-}
-
-def resourceTargets = ['META-INF/mods.toml', 'pack.mcmeta', '*.mixins.json']
-def replaceProperties = [
-    'version': version, 'forge_mc_version_range': forge_mc_version_range, 'forge_version_range': forge_version_range,
-    'license': license, 'mod_id': mod_id, 'mod_author': mod_author, 'mod_description': mod_description,
-    'mod_name': mod_name, 'issue_tracker': issue_tracker, 'mod_credits': mod_credits, 'mod_update_branch': mod_update_branch
-]
-
-processResources {
-    from project(":Common").sourceSets.main.resources
-    duplicatesStrategy(DuplicatesStrategy.FAIL)
-    inputs.properties replaceProperties
-    replaceProperties.put 'project', project
-
-    filesMatching(resourceTargets) {
-        expand replaceProperties
+sourceSets {
+    main {
+        resources {
+            srcDirs += '../licenses'
+        }
     }
 }
 
-tasks.jarJar.finalizedBy('reobfJar')
-jar.finalizedBy('reobfJarJar')
-
-reobf {
-    jarJar {}
+sourceSets.each {
+    def dir = layout.buildDirectory.dir("sourcesSets/$it.name")
+    it.output.resourcesDir = dir
+    it.java.destinationDirectory = dir
 }
 
 tasks.jarJar.configure {
     archiveClassifier.set("")
-}
-
-jarJar {
-    enable()
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            groupId project.group
-            artifactId project.archivesBaseName
-            version project.version
-            artifact jar
-        }
-    }
-    repositories {
-        maven {
-            url "file://" + System.getenv("local_maven")
-        }
-    }
 }
 
 task changelog(type: se.bjurr.gitchangelog.plugin.gradle.GitChangelogTask) {
@@ -145,10 +91,10 @@ def updates = tasks.register("generateUpdates", Copy) {
         expand 'version': version, 'minecraft_version': minecraft_version
     }
 
-    it.into '../files/'
+    it.into '../files/forge'
 }
 
-tasks.generateUpdates.mustRunAfter('jar')
+tasks.generateUpdates.mustRunAfter('jar', 'sourcesJar')
 
 tasks.build.dependsOn('changelog', 'generateUpdates')
 
@@ -169,9 +115,9 @@ task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
         mainFile.addOptional('hourglass')
         mainFile.addOptional('serene-seasons')
     }
-}
 
-tasks.curseforge.dependsOn build
+    dependsOn('jarJar')
+}
 
 modrinth {
     if (project.hasProperty('rpfModrinthId')) {
@@ -190,4 +136,4 @@ modrinth {
     }
 }
 
-tasks.modrinth.dependsOn build
+tasks.modrinth.dependsOn('jarJar')
