@@ -20,7 +20,6 @@ minecraft {
         client {
             workingDirectory file('runs/client')
             ideaModule "${rootProject.name}.${project.name}.main"
-            taskName 'Client'
             mods {
                 modClientRun {
                     source sourceSets.main
@@ -31,7 +30,6 @@ minecraft {
         server {
             workingDirectory file('runs/server')
             ideaModule "${rootProject.name}.${project.name}.main"
-            taskName 'Server'
             arg 'nogui'
             mods {
                 modServerRun {
@@ -47,8 +45,8 @@ dependencies {
     // Hack fix for now, force jopt-simple to be exactly 5.0.4 because Mojang ships that version, but some transtive dependencies request 6.0+
     implementation('net.sf.jopt-simple:jopt-simple:5.0.4') { version { strictly '5.0.4' } }
 
-    implementation fg.deobf(group: 'com.illusivesoulworks.spectrelib', name: 'spectrelib-forge', version: "${spectrelib_range}")
-    jarJar fg.deobf(group: 'com.illusivesoulworks.spectrelib', name: 'spectrelib-forge', version: "${spectrelib_range}") {
+    implementation group: 'com.illusivesoulworks.spectrelib', name: 'spectrelib-forge', version: "${spectrelib_range}"
+    jarJar (group: 'com.illusivesoulworks.spectrelib', name: 'spectrelib-forge', version: "${spectrelib_range}") {
         jarJar.pin(it, "${spectrelib_version}+${minecraft_version}")
     }
 }
@@ -113,6 +111,7 @@ task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
         }
         mainFile.addOptional('catalogue')
         mainFile.addOptional('hourglass')
+        mainFile.addOptional('betterdays')
         mainFile.addOptional('serene-seasons')
     }
 
@@ -132,6 +131,8 @@ modrinth {
         gameVersions = "${release_versions}".split(",") as List<String>
         dependencies {
             optional.project 'hourglass'
+            optional.project 'serene-seasons'
+            optional.project 'betterdays'
         }
     }
 }

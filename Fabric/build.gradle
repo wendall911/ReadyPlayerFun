@@ -58,6 +58,7 @@ task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
             mainFile.addGameVersion("${it}")
         }
         mainFile.addRequirement('fabric-api')
+        mainFile.addOptional('betterdays')
     }
 }
 
@@ -74,6 +75,7 @@ modrinth {
         gameVersions = "${release_versions}".split(",") as List<String>
         dependencies {
             required.project 'fabric-api'
+            optional.project 'betterdays'
         }
     }
 }

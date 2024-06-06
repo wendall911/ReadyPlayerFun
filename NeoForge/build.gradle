@@ -81,6 +81,7 @@ task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
         }
         mainFile.addOptional('catalogue')
         mainFile.addOptional('hourglass')
+        mainFile.addOptional('betterdays')
         mainFile.addOptional('serene-seasons')
     }
 }
@@ -99,6 +100,7 @@ modrinth {
         loaders = ['neoforge']
         dependencies {
             optional.project 'hourglass'
+            optional.project 'betterdays'
             optional.project 'serene-seasons'
         }
     }
