@@ -20,7 +20,6 @@ minecraft {
         client {
             workingDirectory file('runs/client')
             ideaModule "${rootProject.name}.${project.name}.main"
-            taskName 'Client'
             mods {
                 modClientRun {
                     source sourceSets.main
@@ -31,7 +30,6 @@ minecraft {
         server {
             workingDirectory file('runs/server')
             ideaModule "${rootProject.name}.${project.name}.main"
-            taskName 'Server'
             arg 'nogui'
             mods {
                 modServerRun {
