@@ -103,7 +103,7 @@ task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
         apiToken = project.rpfcurseApiKey
         def mainFile = upload(project.rpfcurseId, file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar"))
         mainFile.changelog = file(changelogFile)
-        mainFile.addJavaVersion('Java 17')
+        mainFile.addJavaVersion("Java ${java_version}")
         mainFile.addModLoader('Forge')
         mainFile.releaseType = "${release_type}"
         "${release_versions}".split(',').each {
