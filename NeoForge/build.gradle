@@ -69,9 +69,9 @@ tasks.build.dependsOn('changelog', 'generateUpdates')
 def changelogFile = project(":").projectDir.toString() + '/build/libs/changelog.txt'
 
 task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
-    if (project.hasProperty('ccCurseApiKey')) {
-        apiToken = project.ccCurseApiKey
-        def mainFile = upload(project.ccCurseId, file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar"))
+    if (project.hasProperty('rpfcurseApiKey')) {
+        apiToken = project.rpfcurseApiKey
+        def mainFile = upload(project.rpfcurseId, file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar"))
         mainFile.changelog = file(changelogFile)
         mainFile.addJavaVersion('Java 17')
         mainFile.addModLoader('NeoForge')
@@ -86,9 +86,9 @@ task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
 }
 
 modrinth {
-    if (project.hasProperty('ccModrinthId')) {
+    if (project.hasProperty('rpfModrinthId')) {
         token = project.modrinthKey
-        projectId = project.ccModrinthId
+        projectId = project.rpfModrinthId
         version = getVersion()
         versionType = "${release_type}"
         if (file(changelogFile).exists()) {
