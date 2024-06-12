@@ -129,6 +129,7 @@ modrinth {
         }
         uploadFile = file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar")
         gameVersions = "${release_versions}".split(",") as List<String>
+        loaders = ['forge']
         dependencies {
             optional.project 'hourglass'
             optional.project 'serene-seasons'
