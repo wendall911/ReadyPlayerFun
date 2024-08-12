@@ -16,10 +16,10 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
 
-    modImplementation "com.illusivesoulworks.spectrelib:spectrelib-fabric:${spectrelib_version}+${minecraft_version}"
-    include "com.illusivesoulworks.spectrelib:spectrelib-fabric:${spectrelib_version}+${minecraft_version}"
+    modImplementation "com.illusivesoulworks.spectrelib:spectrelib-fabric:${spectrelib_version}"
+    include "com.illusivesoulworks.spectrelib:spectrelib-fabric:${spectrelib_version}"
 
-    include group: 'com.illusivesoulworks.spectrelib', name: 'spectrelib-fabric', version: "${spectrelib_version}+${minecraft_version}"
+    include group: 'com.illusivesoulworks.spectrelib', name: 'spectrelib-fabric', version: "${spectrelib_version}"
 }
 
 loom {
