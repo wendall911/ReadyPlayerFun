@@ -19,6 +19,11 @@ dependencies {
     modImplementation "com.illusivesoulworks.spectrelib:spectrelib-fabric:${spectrelib_version}"
     include "com.illusivesoulworks.spectrelib:spectrelib-fabric:${spectrelib_version}"
 
+
+    modRuntimeOnly("com.terraformersmc:modmenu:${mod_menu_version}") {
+        transitive = false
+    }
+
     include group: 'com.illusivesoulworks.spectrelib', name: 'spectrelib-fabric', version: "${spectrelib_version}"
 }
 
