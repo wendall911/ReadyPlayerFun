@@ -54,7 +54,6 @@ minecraft {
 
         server {
             workingDirectory project.file('run')
-            arg 'nogui'
             ideaModule "${rootProject.name}.${project.name}.main"
             taskName 'Server'
             property 'mixin.env.remapRefMap', 'true'
