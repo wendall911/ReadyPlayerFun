@@ -1,9 +1,9 @@
 plugins {
-    id 'fabric-loom' version '1.2-SNAPSHOT'
+    id 'fabric-loom'
     id 'idea'
     id 'net.darkhax.curseforgegradle' version '1.+'
     id 'com.modrinth.minotaur' version '2.+'
-    id 'io.freefair.lombok' version '8.6'
+    id 'io.freefair.lombok'
 }
 
 version = "${minecraft_version}-${mod_version}-FABRIC"
@@ -19,14 +19,14 @@ repositories {
 }
 
 dependencies {
-	minecraft "com.mojang:minecraft:${minecraft_version}"
-	mappings(loom.layered {
-		officialMojangMappings()
-		parchment("org.parchmentmc.data:parchment-${fabric_parchment_mc_version}:${fabric_parchment_version}@zip")
-	})
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    mappings(loom.layered {
+        officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-${fabric_parchment_mc_version}:${fabric_parchment_version}@zip")
+    })
 
-	modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
 
     modImplementation group: 'com.illusivesoulworks.spectrelib', name: 'spectrelib-fabric', version: "${spectrelib_range}"
 
@@ -34,53 +34,53 @@ dependencies {
         transitive = false
     }
 
-	implementation group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.1'
-	implementation project(":Common")
+    implementation group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.1'
+    implementation project(":Common")
 
     include group: 'com.illusivesoulworks.spectrelib', name: 'spectrelib-fabric', version: "${spectrelib_version}"
 
 }
 
 loom {
-	runs {
-		client {
-			client()
-			setConfigName("Fabric Client")
-			ideConfigGenerated(true)
-			runDir("run")
-		}
-		server {
-			server()
-			setConfigName("Fabric Server")
-			ideConfigGenerated(true)
-			runDir("run")
-		}
-	}
+    runs {
+        client {
+            client()
+            setConfigName("Fabric Client")
+            ideConfigGenerated(true)
+            runDir("run")
+        }
+        server {
+            server()
+            setConfigName("Fabric Server")
+            ideConfigGenerated(true)
+            runDir("run")
+        }
+    }
 }
 
 sourceSets.main.resources {
-	srcDir 'src/generated/resources'
+    srcDir 'src/generated/resources'
 }
 
 processResources {
-	from project(":Common").sourceSets.main.resources
+    from project(":Common").sourceSets.main.resources
     inputs.property "version", project.version
-	exclude '.cache'
-	duplicatesStrategy(DuplicatesStrategy.FAIL)
+    exclude '.cache'
+    duplicatesStrategy(DuplicatesStrategy.FAIL)
 
     filesMatching("fabric.mod.json") {
-		expand 'version': project.version, 'fabric_mc_version_range': project.fabric_mc_version_range, 'license': project.license,
-				'mod_id': project.mod_id, 'mod_author': project.mod_author, 'mod_description': project.mod_description,
-				'mod_name': project.mod_name, 'issue_tracker': project.issue_tracker, 'fabric_loader_min_version': fabric_loader_min_version
+        expand 'version': project.version, 'fabric_mc_version_range': project.fabric_mc_version_range, 'license': project.license,
+                'mod_id': project.mod_id, 'mod_author': project.mod_author, 'mod_description': project.mod_description,
+                'mod_name': project.mod_name, 'issue_tracker': project.issue_tracker, 'fabric_loader_min_version': fabric_loader_min_version
     }
 
-	filesMatching("pack.mcmeta") {
-		expand 'mod_name': project.mod_name
-	}
+    filesMatching("pack.mcmeta") {
+        expand 'mod_name': project.mod_name
+    }
 }
 
 tasks.withType(JavaCompile) {
-	source(project(":Common").sourceSets.main.allSource)
+    source(project(":Common").sourceSets.main.allSource)
 }
 
 def changelogFile = project(":").projectDir.toString() + '/build/libs/changelog.txt'
