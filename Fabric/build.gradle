@@ -30,7 +30,7 @@ dependencies {
 
     modImplementation group: 'com.illusivesoulworks.spectrelib', name: 'spectrelib-fabric', version: "${spectrelib_range}"
 
-    modImplementation("com.terraformersmc:modmenu:4.0.4") {
+    modImplementation("com.terraformersmc:modmenu:${mod_menu_version}") {
         transitive = false
     }
 
