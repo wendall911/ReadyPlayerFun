@@ -102,6 +102,7 @@ publishMods {
             embeds('spectrelib')
             requires('fabric-api')
             optional('betterdays')
+            optional('serene-seasons')
         }
     }
     if (project.hasProperty('rpfModrinthId')) {
@@ -111,6 +112,7 @@ publishMods {
             minecraftVersions.addAll("${release_versions}".split(','))
             requires('fabric-api')
             optional('betterdays')
+            optional('serene-seasons')
         }
     }
     if (project.hasProperty('rpfGithubToken')) {
