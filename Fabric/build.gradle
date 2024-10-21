@@ -58,12 +58,13 @@ publishMods {
             accessToken = project.rpfcurseApiKey
             projectId = project.rpfcurseId
             javaVersions.add(JavaVersion.toVersion("${java_version}"))
-            clientRequired = true
+            clientRequired = false
             serverRequired = true
             minecraftVersions.addAll("${release_versions}".split(','))
             embeds('spectrelib')
             requires('fabric-api')
             optional('betterdays')
+            optional('serene-seasons')
         }
     }
     if (project.hasProperty('rpfModrinthId')) {
@@ -72,6 +73,8 @@ publishMods {
             projectId = project.rpfModrinthId
             minecraftVersions.addAll("${release_versions}".split(','))
             requires('fabric-api')
+            optional('betterdays')
+            optional('serene-seasons')
         }
     }
     if (project.hasProperty('rpfGithubToken')) {

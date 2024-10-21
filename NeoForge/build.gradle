@@ -81,7 +81,7 @@ publishMods {
             accessToken = project.rpfcurseApiKey
             projectId = project.rpfcurseId
             javaVersions.add(JavaVersion.toVersion("${java_version}"))
-            clientRequired = true
+            clientRequired = false
             serverRequired = true
             minecraftVersions.addAll("${release_versions}".split(','))
             embeds('spectrelib')
