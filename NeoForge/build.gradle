@@ -74,7 +74,7 @@ publishMods {
     file = file(publishFile)
     changelog = file(changelogFile).text
     type = "${release_type}".startsWith("release") ? STABLE : ("${release_type}".startsWith("beta") ? BETA : ALPHA)
-    modLoaders.addAll(['neoforge', 'forge'])
+    modLoaders.addAll(['neoforge'])
 
     if (project.hasProperty('rpfcurseApiKey')) {
         curseforge {
