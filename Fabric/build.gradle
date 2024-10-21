@@ -1,8 +1,7 @@
 plugins {
     id 'fabric-loom'
     id 'idea'
-    id 'net.darkhax.curseforgegradle' version '1.+'
-    id 'com.modrinth.minotaur' version '2.+'
+    id 'me.modmuss50.mod-publish-plugin'
     id 'io.freefair.lombok'
 }
 
@@ -84,39 +83,35 @@ tasks.withType(JavaCompile) {
 }
 
 def changelogFile = project(":").projectDir.toString() + '/build/libs/changelog.txt'
+def publishFile = project(":").projectDir.toString() + "/Fabric/build/libs/${archivesBaseName}-${version}.jar"
 
-task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
+publishMods {
+    file = file(publishFile)
+    changelog = file(changelogFile).text
+    type = "${release_type}".startsWith("release") ? STABLE : ("${release_type}".startsWith("beta") ? BETA : ALPHA)
+    modLoaders.add('fabric')
+
     if (project.hasProperty('rpfcurseApiKey')) {
-        apiToken = project.rpfcurseApiKey
-        def mainFile = upload(project.rpfcurseId, file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar"))
-        mainFile.changelog = file(changelogFile)
-        mainFile.addJavaVersion('Java 17')
-        mainFile.addModLoader('Fabric')
-        mainFile.releaseType = "${release_type}"
-        "${release_versions}".split(',').each {
-            mainFile.addGameVersion("${it}")
+        curseforge {
+            accessToken = project.rpfcurseApiKey
+            projectId = project.rpfcurseId
+            javaVersions.add(JavaVersion.toVersion("${java_version}"))
+            clientRequired = true
+            serverRequired = true
+            minecraftVersions.addAll("${release_versions}".split(','))
+            embeds('spectrelib')
+            requires('fabric-api')
+            optional('betterdays')
         }
-        mainFile.addRequirement('fabric-api')
     }
-}
-
-tasks.curseforge.dependsOn build
-
-modrinth {
     if (project.hasProperty('rpfModrinthId')) {
-        token = project.modrinthKey
-        projectId = project.rpfModrinthId
-        version = getVersion()
-        versionType = "${release_type}"
-        if (file(changelogFile).exists()) {
-            changelog = file(changelogFile).text
-        }
-        uploadFile = file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar")
-        gameVersions = "${release_versions}".split(",") as List<String>
-        dependencies {
-            required.project 'fabric-api'
+        modrinth {
+            accessToken = project.modrinthKey
+            projectId = project.rpfModrinthId
+            minecraftVersions.addAll("${release_versions}".split(','))
+            requires('fabric-api')
         }
     }
+    if (project.hasProperty('rpfGithubToken')) {
+    }
 }
-
-tasks.modrinth.dependsOn build
