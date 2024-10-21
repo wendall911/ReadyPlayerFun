@@ -18,6 +18,7 @@ public class WorldState {
     @Getter @Setter private boolean doFireTick;
     @Getter @Setter private int randomTickSpeed;
     @Getter @Setter private boolean loaded = false;
+    @Getter @Setter private boolean needsSave = true;
 
     public WorldState() {}
 }
