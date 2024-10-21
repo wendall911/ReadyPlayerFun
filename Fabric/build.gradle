@@ -96,7 +96,7 @@ publishMods {
             accessToken = project.rpfcurseApiKey
             projectId = project.rpfcurseId
             javaVersions.add(JavaVersion.toVersion("${java_version}"))
-            clientRequired = true
+            clientRequired = false
             serverRequired = true
             minecraftVersions.addAll("${release_versions}".split(','))
             embeds('spectrelib')
@@ -110,6 +110,7 @@ publishMods {
             projectId = project.rpfModrinthId
             minecraftVersions.addAll("${release_versions}".split(','))
             requires('fabric-api')
+            optional('betterdays')
         }
     }
     if (project.hasProperty('rpfGithubToken')) {
