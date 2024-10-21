@@ -41,7 +41,7 @@ public class ServerEventHander {
 
     public static void onPlayerJoin(ServerPlayer sp) {
         PlayerList playerList = Objects.requireNonNull(sp.getServer()).getPlayerList();
-        ServerLevel level = sp.serverLevel();
+        ServerLevel level = sp.getServer().overworld();
         WorldState worldState = getWorldState(level);
 
         if (playerList.getPlayerCount() >= 1 && worldState.isPaused()) {
@@ -61,7 +61,7 @@ public class ServerEventHander {
 
     public static void onPlayerLogout(ServerPlayer sp) {
         PlayerList playerList = Objects.requireNonNull(sp.getServer()).getPlayerList();
-        ServerLevel level = sp.serverLevel();
+        ServerLevel level = sp.getServer().overworld();
         WorldState worldState = getWorldState(level);
 
         if (worldState.isLoaded() && playerList.getPlayerCount() <= 1) {
@@ -137,11 +137,11 @@ public class ServerEventHander {
         worldState.setLoaded(true);
     }
 
-    private static WorldState getWorldState(ServerLevel level) {
+    public static WorldState getWorldState(ServerLevel level) {
         return WORLD_STATE_MAP.computeIfAbsent(level.getSeed(), k-> new WorldState());
     }
 
-    private static void pauseServer(String ctx, ServerLevel level) {
+    public static void pauseServer(String ctx, ServerLevel level) {
         GameRules rules = level.getLevelData().getGameRules();
         WorldState worldState = getWorldState(level);
 
@@ -189,6 +189,7 @@ public class ServerEventHander {
             String.format("Unpausing server: %s at %d, %d", ctx, worldState.getGameTime(), worldState.getDayTime()));
 
         worldState.setPaused(false);
+        worldState.setNeedsSave(true);
     }
 
     private static void cyclePause(ServerLevel level) {
@@ -215,7 +216,7 @@ public class ServerEventHander {
         String argument = nodes.get(1).getRange().get(results.getReader());
 
         if ("gamerule".equals(commandName)) {
-            ServerLevel level = src.getLevel();
+            ServerLevel level = src.getServer().overworld();
             WorldState worldState = getWorldState(level);
 
             boolean cycle = false;
