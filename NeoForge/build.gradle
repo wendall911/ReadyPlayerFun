@@ -68,41 +68,39 @@ tasks.generateUpdates.mustRunAfter('jar', 'sourcesJar')
 tasks.build.dependsOn('changelog', 'generateUpdates')
 
 def changelogFile = project(":").projectDir.toString() + '/build/libs/changelog.txt'
+def publishFile = project(":").projectDir.toString() + "/Forge/build/libs/${archivesBaseName}-${version}.jar"
 
-task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
+publishMods {
+    file = file(publishFile)
+    changelog = file(changelogFile).text
+    type = "${release_type}".startsWith("release") ? STABLE : ("${release_type}".startsWith("beta") ? BETA : ALPHA)
+    modLoaders.addAll(['neoforge', 'forge'])
+
     if (project.hasProperty('rpfcurseApiKey')) {
-        apiToken = project.rpfcurseApiKey
-        def mainFile = upload(project.rpfcurseId, file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar"))
-        mainFile.changelog = file(changelogFile)
-        mainFile.addJavaVersion("Java ${java_version}")
-        mainFile.addModLoader('NeoForge')
-        mainFile.releaseType = "${release_type}"
-        "${release_versions}".split(',').each {
-            mainFile.addGameVersion("${it}")
+        curseforge {
+            accessToken = project.rpfcurseApiKey
+            projectId = project.rpfcurseId
+            javaVersions.add(JavaVersion.toVersion("${java_version}"))
+            clientRequired = true
+            serverRequired = true
+            minecraftVersions.addAll("${release_versions}".split(','))
+            embeds('spectrelib')
+            optional('catalogue')
+            optional('betterdays')
+            optional('hourglass')
+            optional('serene-seasons')
         }
-        mainFile.addOptional('catalogue')
-        mainFile.addOptional('hourglass')
-        mainFile.addOptional('betterdays')
-        mainFile.addOptional('serene-seasons')
     }
-}
-
-modrinth {
     if (project.hasProperty('rpfModrinthId')) {
-        token = project.modrinthKey
-        projectId = project.rpfModrinthId
-        version = getVersion()
-        versionType = "${release_type}"
-        if (file(changelogFile).exists()) {
-            changelog = file(changelogFile).text
+        modrinth {
+            accessToken = project.modrinthKey
+            projectId = project.rpfModrinthId
+            minecraftVersions.addAll("${release_versions}".split(','))
+            optional('betterdays')
+            optional('hourglass')
+            optional('serene-seasons')
         }
-        uploadFile = file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar")
-        gameVersions = "${release_versions}".split(",") as List<String>
-        loaders = ['neoforge']
-        dependencies {
-            optional.project 'hourglass'
-            optional.project 'betterdays'
-            optional.project 'serene-seasons'
-        }
+    }
+    if (project.hasProperty('rpfGithubToken')) {
     }
 }
