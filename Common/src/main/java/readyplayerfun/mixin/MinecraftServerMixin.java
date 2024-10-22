@@ -66,7 +66,6 @@ public abstract class MinecraftServerMixin {
             // Ensure player count is correct for remote players
             if (curNanos - ((MinecraftServerAccessor) server).getLastServerStatus() >= 5000000000L) {
                 ((MinecraftServerAccessor) server).setLastServerStatus(curNanos);
-                ((MinecraftServerAccessor) server).setStatus(((MinecraftServerAccessor) server).invokeBuildServerStatus());
             }
 
         }
