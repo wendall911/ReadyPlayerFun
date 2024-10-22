@@ -1,12 +1,12 @@
 plugins {
     id 'idea'
     id 'maven-publish'
-    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
+    id 'net.minecraftforge.gradle'
     id 'org.parchmentmc.librarian.forgegradle' version '1.+'
-    id 'net.darkhax.curseforgegradle' version '1.+'
+    id 'org.spongepowered.mixin'
+    id 'me.modmuss50.mod-publish-plugin'
     id 'se.bjurr.gitchangelog.git-changelog-gradle-plugin' version '1.71.8'
-    id 'com.modrinth.minotaur' version '2.+'
-    id 'io.freefair.lombok' version '8.6'
+    id 'io.freefair.lombok'
 }
 
 repositories {
@@ -18,6 +18,12 @@ repositories {
 
 archivesBaseName = "${mod_id}"
 version = "${minecraft_version}-${mod_version}-FORGE"
+
+mixin {
+    add sourceSets.main, "${mod_id}-refmap.json"
+
+    config "${mod_id}.forge.mixins.json"
+}
 
 minecraft {
 	mappings channel: "${mappings_channel}", version: "${mappings_version}-${minecraft_version}"
@@ -34,6 +40,9 @@ minecraft {
 			workingDirectory project.file('run')
 			ideaModule "${rootProject.name}.${project.name}.main"
 			taskName 'Client'
+			property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+            args "-mixin.config=${mod_id}.forge.mixins.json"
 			mods {
 				modClientRun {
 					source sourceSets.main
@@ -44,9 +53,11 @@ minecraft {
 
 		server {
 			workingDirectory project.file('run')
-            arg 'nogui'
 			ideaModule "${rootProject.name}.${project.name}.main"
 			taskName 'Server'
+			property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+            args "-mixin.config=${mod_id}.forge.mixins.json"
 			mods {
 				modServerRun {
 					source sourceSets.main
@@ -56,8 +67,6 @@ minecraft {
 		}
 	}
 }
-
-sourceSets.main.resources.srcDir 'src/generated/resources'
 
 dependencies {
 	minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
@@ -71,7 +80,6 @@ dependencies {
 
 compileJava {
 	source(project(":Common").sourceSets.main.allSource)
-	options.compilerArgs << "-Xlint:all,-classfile,-processing,-deprecation,-serial" << "-Werror"
 }
 
 tasks.withType(JavaCompile) {
@@ -153,37 +161,39 @@ tasks.generateUpdates.mustRunAfter('jar')
 tasks.build.dependsOn('changelog', 'generateUpdates')
 
 def changelogFile = project(":").projectDir.toString() + '/build/libs/changelog.txt'
+def publishFile = project(":").projectDir.toString() + "/Forge/build/libs/${archivesBaseName}-${version}.jar"
 
-task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
+publishMods {
+    file = file(publishFile)
+    changelog = file(changelogFile).text
+    type = "${release_type}".startsWith("release") ? STABLE : ("${release_type}".startsWith("beta") ? BETA : ALPHA)
+    modLoaders.addAll(['forge'])
+
     if (project.hasProperty('rpfcurseApiKey')) {
-        apiToken = project.rpfcurseApiKey
-        def mainFile = upload(project.rpfcurseId, file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar"))
-        mainFile.changelog = file(changelogFile)
-        mainFile.addJavaVersion('Java 17')
-        mainFile.addModLoader('Forge')
-        mainFile.releaseType = "${release_type}"
-        "${release_versions}".split(',').each {
-            mainFile.addGameVersion("${it}")
+        curseforge {
+            accessToken = project.rpfcurseApiKey
+            projectId = project.rpfcurseId
+            javaVersions.add(JavaVersion.toVersion("${java_version}"))
+            clientRequired = false
+            serverRequired = true
+            minecraftVersions.addAll("${release_versions}".split(','))
+            embeds('spectrelib')
+            optional('catalogue')
+            optional('betterdays')
+            optional('hourglass')
+            optional('serene-seasons')
         }
-        mainFile.addOptional('catalogue')
-        mainFile.addOptional('hourglass')
-        mainFile.addOptional('serene-seasons')
     }
-}
-
-modrinth {
     if (project.hasProperty('rpfModrinthId')) {
-        token = project.modrinthKey
-        projectId = project.rpfModrinthId
-        version = getVersion()
-        versionType = "${release_type}"
-        if (file(changelogFile).exists()) {
-            changelog = file(changelogFile).text
+        modrinth {
+            accessToken = project.modrinthKey
+            projectId = project.rpfModrinthId
+            minecraftVersions.addAll("${release_versions}".split(','))
+            optional('betterdays')
+            optional('hourglass')
+            optional('serene-seasons')
         }
-        uploadFile = file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar")
-        gameVersions = "${release_versions}".split(",") as List<String>
-        dependencies {
-            optional.project 'hourglass'
-        }
+    }
+    if (project.hasProperty('rpfGithubToken')) {
     }
 }
