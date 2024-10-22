@@ -47,7 +47,7 @@ public class ServerEventHandler {
         if (player != null && !player.level.isClientSide) {
             ServerPlayer sp = (ServerPlayer) player;
             PlayerList playerList = Objects.requireNonNull(sp.getServer()).getPlayerList();
-            ServerLevel level = sp.getLevel();
+            ServerLevel level = sp.getServer().overworld();
             WorldState worldState = getWorldState(level);
 
             if (playerList.getPlayerCount() >= 1 && worldState.isPaused()) {
@@ -72,7 +72,7 @@ public class ServerEventHandler {
         if (player != null && !player.level.isClientSide) {
             ServerPlayer sp = (ServerPlayer) player;
             PlayerList playerList = Objects.requireNonNull(sp.getServer()).getPlayerList();
-            ServerLevel level = sp.getLevel();
+            ServerLevel level = sp.getServer().overworld();
             WorldState worldState = getWorldState(level);
 
             if (worldState.isLoaded() && playerList.getPlayerCount() <= 1) {
@@ -186,7 +186,7 @@ public class ServerEventHandler {
         String commandName = nodes.get(0).getNode().getName();
         String argument = nodes.get(1).getRange().get(results.getReader());
         if ("gamerule".equals(commandName)) {
-            ServerLevel level = src.getLevel();
+            ServerLevel level = src.getServer().overworld();
             WorldState worldState = getWorldState(level);
             boolean cycle = false;
 
@@ -211,11 +211,11 @@ public class ServerEventHandler {
         }
     }
 
-    private static WorldState getWorldState(ServerLevel level) {
+    public static WorldState getWorldState(ServerLevel level) {
         return WORLD_STATE_MAP.computeIfAbsent(level.getSeed(), k-> new WorldState());
     }
 
-    private static void pauseServer(String ctx, ServerLevel level) {
+    public static void pauseServer(String ctx, ServerLevel level) {
         GameRules rules = level.getLevelData().getGameRules();
         WorldState worldState = getWorldState(level);
 
@@ -251,6 +251,7 @@ public class ServerEventHandler {
             worldState.isRaining(), worldState.getRainTime(), worldState.isThundering(), worldState.getThunderTime(), worldState.getWeatherTime(), worldState.getRandomTickSpeed(), worldState.isDoFireTick()));
 
         worldState.setPaused(true);
+        worldState.setNeedsSave(true);
     }
 
     private static void unpauseServer(String ctx, ServerLevel level) {
