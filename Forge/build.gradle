@@ -26,51 +26,57 @@ mixin {
 }
 
 minecraft {
-	mappings channel: "${mappings_channel}", version: "${mappings_version}-${minecraft_version}"
+    mappings channel: "${mappings_channel}", version: "${mappings_version}-${minecraft_version}"
 
-	if (project.hasProperty('forge_ats_enabled') && project.findProperty('forge_ats_enabled').toBoolean()) {
-		// This location is hardcoded in Forge and can not be changed.
-		// https://github.com/MinecraftForge/MinecraftForge/blob/be1698bb1554f9c8fa2f58e32b9ab70bc4385e60/fmlloader/src/main/java/net/minecraftforge/fml/loading/moddiscovery/ModFile.java#L123
-		accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
-		project.logger.debug('Forge Access Transformers are enabled for this project.')
-	}
+    if (project.hasProperty('forge_ats_enabled') && project.findProperty('forge_ats_enabled').toBoolean()) {
+        // This location is hardcoded in Forge and can not be changed.
+        // https://github.com/MinecraftForge/MinecraftForge/blob/be1698bb1554f9c8fa2f58e32b9ab70bc4385e60/fmlloader/src/main/java/net/minecraftforge/fml/loading/moddiscovery/ModFile.java#L123
+        accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+        project.logger.debug('Forge Access Transformers are enabled for this project.')
+    }
 
-	runs {
-		client {
-			workingDirectory project.file('run')
-			ideaModule "${rootProject.name}.${project.name}.main"
-			taskName 'Client'
-			property 'mixin.env.remapRefMap', 'true'
+    runs {
+        client {
+            workingDirectory project.file('run')
+            ideaModule "${rootProject.name}.${project.name}.main"
+            taskName 'Client'
+            property 'mixin.env.remapRefMap', 'true'
             property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
             args "-mixin.config=${mod_id}.forge.mixins.json"
-			mods {
-				modClientRun {
-					source sourceSets.main
-					source project(":Common").sourceSets.main
-				}
-			}
-		}
+            mods {
+                modClientRun {
+                    source sourceSets.main
+                    source project(":Common").sourceSets.main
+                }
+            }
+        }
 
-		server {
-			workingDirectory project.file('run')
-			ideaModule "${rootProject.name}.${project.name}.main"
-			taskName 'Server'
-			property 'mixin.env.remapRefMap', 'true'
+        server {
+            workingDirectory project.file('run')
+            ideaModule "${rootProject.name}.${project.name}.main"
+            taskName 'Server'
+            property 'mixin.env.remapRefMap', 'true'
             property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
             args "-mixin.config=${mod_id}.forge.mixins.json"
-			mods {
-				modServerRun {
-					source sourceSets.main
-					source project(":Common").sourceSets.main
-				}
-			}
-		}
-	}
+            mods {
+                modServerRun {
+                    source sourceSets.main
+                    source project(":Common").sourceSets.main
+                }
+            }
+        }
+    }
+}
+
+sourceSets.main.resources {
+    srcDir 'src/generated/resources'
 }
 
 dependencies {
-	minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-	compileOnly project(":Common")
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+    compileOnly project(":Common")
+
+    annotationProcessor "org.spongepowered:mixin:${mixin_version}:processor"
 
     implementation fg.deobf(group: 'com.illusivesoulworks.spectrelib', name: 'spectrelib-forge', version: "${spectrelib_range}")
     jarJar fg.deobf(group: 'com.illusivesoulworks.spectrelib', name: 'spectrelib-forge', version: "${spectrelib_range}") {
@@ -79,7 +85,7 @@ dependencies {
 }
 
 compileJava {
-	source(project(":Common").sourceSets.main.allSource)
+    source(project(":Common").sourceSets.main.allSource)
 }
 
 tasks.withType(JavaCompile) {
