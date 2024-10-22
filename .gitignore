@@ -7,11 +7,7 @@ run
 # IntelliJ
 .idea
 
-# Architectury cruft
-.architectury-transformer
 Common
 Fabric
 Forge
-*.iml
-*.ipr
-*.iws
+NeoForge
