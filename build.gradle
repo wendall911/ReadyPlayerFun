@@ -162,7 +162,7 @@ task signJar(type: SignJar, dependsOn: jar) {
 }
 
 def changelogFile = project(":").projectDir.toString() + '/build/libs/changelog.txt'
-def publishFile = project(":").projectDir.toString() + "build/libs/${archivesBaseName}-${version}.jar"
+def publishFile = project(":").projectDir.toString() + "/build/libs/${archivesBaseName}-${version}.jar"
 
 task changelog(type: se.bjurr.gitchangelog.plugin.gradle.GitChangelogTask) {
     file = new File(changelogFile);
