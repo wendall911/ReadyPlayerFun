@@ -72,7 +72,9 @@ def publishFile = project(":").projectDir.toString() + "/NeoForge/build/libs/${a
 
 publishMods {
     file = file(publishFile)
-    changelog = file(changelogFile).text
+    if (file(changelogFile).exists()) {
+        changelog = file(changelogFile).text
+    }
     type = "${release_type}".startsWith("release") ? STABLE : ("${release_type}".startsWith("beta") ? BETA : ALPHA)
     modLoaders.addAll(['neoforge'])
 

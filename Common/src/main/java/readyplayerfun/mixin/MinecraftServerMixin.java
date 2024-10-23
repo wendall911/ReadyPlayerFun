@@ -5,9 +5,9 @@ import java.util.function.BooleanSupplier;
 
 import net.minecraft.Util;
 import net.minecraft.server.MinecraftServer;
-
 import net.minecraft.server.dedicated.DedicatedServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.profiling.Profiler;
 import net.minecraft.util.profiling.ProfilerFiller;
 
 import org.slf4j.Logger;
@@ -35,7 +35,7 @@ public abstract class MinecraftServerMixin {
         if (!server.isDedicatedServer()) return;
 
         WorldState worldState = getWorldState(server);
-        ProfilerFiller profilerFiller = server.getProfiler();
+        ProfilerFiller profilerFiller = Profiler.get();
 
         // Save on pause
         if (worldState.isPaused() && worldState.isNeedsSave()) {

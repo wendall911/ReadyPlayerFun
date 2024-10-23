@@ -31,7 +31,7 @@ public class ServerEventHander {
     public static void serverStopping(MinecraftServer server) {
         ServerLevel level = server.overworld();
         WorldState worldState = getWorldState(level);
-        GameRules rules = level.getLevelData().getGameRules();
+        GameRules rules = level.getGameRules();
 
         worldState.setLoaded(false);
 
@@ -142,7 +142,7 @@ public class ServerEventHander {
     }
 
     public static void pauseServer(String ctx, ServerLevel level) {
-        GameRules rules = level.getLevelData().getGameRules();
+        GameRules rules = level.getGameRules();
         WorldState worldState = getWorldState(level);
 
         worldState.setStartPauseTime(System.currentTimeMillis());
