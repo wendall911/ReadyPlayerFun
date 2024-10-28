@@ -1,10 +1,5 @@
 package readyplayerfun.config;
 
-import java.util.Arrays;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.List;
-
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.ForgeConfigSpec.BooleanValue;
 import net.minecraftforge.common.ForgeConfigSpec.IntValue;
@@ -58,9 +53,7 @@ public class ConfigHandler {
 
         private static final Server CONFIG;
 
-        public static BooleanValue FORCE_GAME_RULES;
-        public static BooleanValue DO_FIRE_TICK;
-        public static IntValue RANDOM_TICK_SPEED;
+        public static IntValue PAUSE_WHILE_EMPTY_SECONDS;
 
         static {
             Pair<Server, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(Server::new);
@@ -70,15 +63,8 @@ public class ConfigHandler {
         }
 
         Server(ForgeConfigSpec.Builder builder) {
-            FORCE_GAME_RULES = builder
-                .comment("Force game rules regardless of server setting for 'paused' rules.")
-                .define("FORCE_GAME_RULES", true);
-            DO_FIRE_TICK = builder
-                .comment("doFireTick")
-                .define("DO_FIRE_TICK", true);
-            RANDOM_TICK_SPEED = builder
-                .comment("randomTickSpeed")
-                .defineInRange("RANDOM_TICK_SPEED", 3, 0, 20);
+            PAUSE_WHILE_EMPTY_SECONDS = builder.comment("Number of seconds before server pauses. Backport of pause-when-empty-seconds from 1.21.2+")
+                .defineInRange("pauseWhileEmptySeconds", 60, 1, 360);
         }
     }
 
