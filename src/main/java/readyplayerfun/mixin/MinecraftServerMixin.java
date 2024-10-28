@@ -48,7 +48,6 @@ public abstract class MinecraftServerMixin {
 
         // Tick essential things, don't tick world
         if (worldState.isPaused()) {
-            List<Runnable> tickables = ((MinecraftServerAccessor)server).getTickables();
             long curNanos = Util.getNanos();
 
             // Tick connection
@@ -56,9 +55,6 @@ public abstract class MinecraftServerMixin {
             server.getConnection().tick();
 
             profilerFiller.popPush("server gui");
-            for (int i = 0; i < tickables.size(); i++) {
-                tickables.get(i).run();
-            }
 
             // Handle console inputs normally
             ((DedicatedServer) server).handleConsoleInputs();
