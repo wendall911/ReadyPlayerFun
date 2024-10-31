@@ -1,6 +1,5 @@
 package readyplayerfun.mixin;
 
-import java.util.List;
 import java.util.function.BooleanSupplier;
 
 import net.minecraft.Util;
@@ -15,10 +14,12 @@ import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import readyplayerfun.config.ConfigHandler;
 import readyplayerfun.event.ServerEventHander;
 import readyplayerfun.util.WorldState;
 
@@ -26,6 +27,7 @@ import readyplayerfun.util.WorldState;
 public abstract class MinecraftServerMixin {
 
     @Shadow @Final private static Logger LOGGER;
+    private int emptyTicks;
 
     @Inject(method = "tickServer", at = @At("HEAD"), cancellable = true)
     private void rpf$onTickServer(BooleanSupplier pHasTimeLeft, CallbackInfo ci) {
@@ -34,13 +36,13 @@ public abstract class MinecraftServerMixin {
         // Don't do anything on client side
         if (!server.isDedicatedServer()) return;
 
-        WorldState worldState = getWorldState(server);
+        WorldState worldState = readyplayerfun$getWorldState(server);
         ProfilerFiller profilerFiller = server.getProfiler();
 
         // Save on pause
         if (worldState.isPaused() && worldState.isNeedsSave()) {
             profilerFiller.push("saveOnPause");
-            LOGGER.info("Saving game on pause.");
+            LOGGER.info("Server empty for {} seconds, pausing", ConfigHandler.Common.pauseWhileEmptySeconds());
             server.saveEverything(false, false, false);
             worldState.setNeedsSave(false);
             profilerFiller.pop();
@@ -68,16 +70,25 @@ public abstract class MinecraftServerMixin {
                 ((MinecraftServerAccessor) server).setLastServerStatus(curNanos);
             }
 
+            ci.cancel();
         }
     }
 
-    private WorldState getWorldState(MinecraftServer server) {
+    @Unique
+    private WorldState readyplayerfun$getWorldState(MinecraftServer server) {
         ServerLevel level = server.overworld();
         int playerCount = server.getPlayerCount();
         WorldState worldState = ServerEventHander.getWorldState(level);
+        int j = ConfigHandler.Common.pauseWhileEmptySeconds() * 20;
+
+        if (playerCount <= 0) {
+            ++this.emptyTicks;
+        } else {
+            this.emptyTicks = 0;
+        }
 
         // Check if we have even fired any pause events. If not, set server state to paused.
-        if (playerCount <= 0 && !worldState.isPaused()) {
+        if (this.emptyTicks >= j && !worldState.isPaused()) {
             ServerEventHander.pauseServer("tickServer", level);
             worldState = ServerEventHander.getWorldState(level);
         }
