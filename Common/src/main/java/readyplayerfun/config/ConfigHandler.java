@@ -22,24 +22,15 @@ public class ConfigHandler {
     public static class Common {
 
         private final SpectreConfigSpec.BooleanValue enableWelcomeMessage;
-        private final SpectreConfigSpec.BooleanValue forceGameRules;
-        private final SpectreConfigSpec.BooleanValue doFireTick;
-        private final SpectreConfigSpec.IntValue randomTickSpeed;
+        private final SpectreConfigSpec.IntValue pauseWhileEmptySeconds;
 
         public Common(SpectreConfigSpec.Builder builder) {
             builder.push("Server");
 
             enableWelcomeMessage = builder.comment("Show status message on first player login after server unpaused.")
                 .define("enableWelcomeMessage", true);
-
-            forceGameRules = builder.comment("Force game rules regardless of server setting for 'paused' rules.")
-                .define("forceGameRules", false);
-
-            doFireTick = builder.comment("doFireTick default value. Used if forceGameRules is set to true.")
-                .define("doFireTick", true);
-
-            randomTickSpeed = builder.comment("randomTickSpeed default value. Used if forceGameRules is set to true.")
-                .defineInRange("randomTickSpeed", 3, 0, 50);
+            pauseWhileEmptySeconds = builder.comment("Number of seconds before server pauses. Backport of pause-when-empty-seconds from 1.21.2+")
+                .defineInRange("pauseWhileEmptySeconds", 60, 1, 360);
 
             builder.pop();
         }
@@ -48,16 +39,8 @@ public class ConfigHandler {
             return COMMON.enableWelcomeMessage.get();
         }
 
-        public static boolean forceGameRules() {
-            return COMMON.forceGameRules.get();
-        }
-
-        public static boolean doFireTick() {
-            return COMMON.doFireTick.get();
-        }
-
-        public static int randomTickSpeed() {
-            return COMMON.randomTickSpeed.get();
+        public static int pauseWhileEmptySeconds() {
+            return COMMON.pauseWhileEmptySeconds.get();
         }
 
     }
