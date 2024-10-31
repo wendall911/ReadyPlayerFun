@@ -78,6 +78,10 @@ public abstract class MinecraftServerMixin {
         WorldState worldState = ServerEventHander.getWorldState(level);
         int j = ConfigHandler.Common.pauseWhileEmptySeconds() * 20;
 
+        if (!worldState.isLoaded()) {
+            return worldState;
+        }
+
         if (playerCount == 0 && !server.tickRateManager().isSprinting()) {
             ++this.emptyTicks;
         } else {

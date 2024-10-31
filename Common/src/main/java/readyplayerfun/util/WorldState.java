@@ -11,6 +11,7 @@ public class WorldState {
     @Getter @Setter private long gameTime;
     @Getter @Setter private long dayTime;
     @Getter @Setter private boolean needsSave = true;
+    @Getter @Setter private boolean loaded = false;
 
     public WorldState() {}
 }
