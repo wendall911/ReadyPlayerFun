@@ -65,6 +65,9 @@ public class ServerEventHander {
     }
 
     public static void levelLoad(ServerLevel level) {
+        WorldState worldState = getWorldState(level);
+
+        worldState.setLoaded(true);
     }
 
     public static WorldState getWorldState(ServerLevel level) {
