@@ -15,7 +15,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import readyplayerfun.event.ServerEventHander;
-import readyplayerfun.util.WorldState;
 
 @Mixin(MinecraftServer.class)
 public abstract class MinecraftServerMixin {
@@ -39,12 +38,6 @@ public abstract class MinecraftServerMixin {
         if (!server.isDedicatedServer()) return;
 
         ServerEventHander.pauseServer("pause-when-empty-seconds", level);
-
-        WorldState worldState = ServerEventHander.getWorldState(level);
-
-        if (worldState.isPaused()) {
-
-        }
     }
 
 }
