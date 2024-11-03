@@ -1,5 +1,5 @@
-# Ready Player Fun [![Project](http://cf.way2muchnoise.eu/full_322036_downloads.svg)](https://www.curseforge.com/minecraft/mc-mods/ready-player-fun)
-[![](http://cf.way2muchnoise.eu/versions/322036.svg)](https://www.curseforge.com/minecraft/mc-mods/ready-player-fun/files)
+# Ready Player Fun [![Project](http://cf.way2muchnoise.eu/full_322036_downloads.svg)](https://www.curseforge.com/minecraft/mc-mods/ready-player-fun) [![Project](https://modrinth.roughness.technology/full_ready-player-fun_downloads.svg)](https://modrinth.com/mod/ready-player-fun)
+[![](https://modrinth.roughness.technology/versions/ready-player-fun.svg)](https://modrinth.com/mod/ready-player-fun/versions)
 [![](https://img.shields.io/badge/NeoForge-20.4+-orange.svg?longCache=true&style=flat)](https://www.curseforge.com/minecraft/mc-mods/ready-player-fun/files?gameVersionTypeId=6)
 [![](https://img.shields.io/badge/Fabric-0.46.0+-yellowgreen.svg?longCache=true&style=flat)](https://www.curseforge.com/minecraft/mc-mods/ready-player-fun/files?gameVersionTypeId=4)
 ![MIT](https://img.shields.io/badge/license-MIT-blue.svg?longCache=true&style=flat)
