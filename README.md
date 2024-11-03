@@ -1,12 +1,12 @@
 # Ready Player Fun [![Project](http://cf.way2muchnoise.eu/full_322036_downloads.svg)](https://www.curseforge.com/minecraft/mc-mods/ready-player-fun) [![Project](https://modrinth.roughness.technology/full_ready-player-fun_downloads.svg)](https://modrinth.com/mod/ready-player-fun)
 [![](https://modrinth.roughness.technology/versions/ready-player-fun.svg)](https://modrinth.com/mod/ready-player-fun/versions)
-[![](https://img.shields.io/badge/NeoForge-20.4+-orange.svg?longCache=true&style=flat)](https://www.curseforge.com/minecraft/mc-mods/ready-player-fun/files?gameVersionTypeId=6)
-[![](https://img.shields.io/badge/Fabric-0.46.0+-yellowgreen.svg?longCache=true&style=flat)](https://www.curseforge.com/minecraft/mc-mods/ready-player-fun/files?gameVersionTypeId=4)
+[![](https://img.shields.io/badge/NeoForge-20+-orange.svg?longCache=true&style=flat)](https://www.curseforge.com/minecraft/mc-mods/ready-player-fun/files?gameVersionTypeId=6)
+[![](https://img.shields.io/badge/Fabric-0.44.0+-yellowgreen.svg?longCache=true&style=flat)](https://www.curseforge.com/minecraft/mc-mods/ready-player-fun/files?gameVersionTypeId=4)
 ![MIT](https://img.shields.io/badge/license-MIT-blue.svg?longCache=true&style=flat)
 
-A Minecraft 1.12.2+ mod to designed to allow a server to remain running while time, weather and season are paused.
+A Minecraft 1.18+ mod to designed to allow a server to remain running while time, weather and season are paused.
 
 ## Links of Interest
 
-+ [Ready Player Fun Wiki](https://github.com/wendall911/ReadyPlayerFun/wiki)
 + [Ready Player Fun Curseforge Page](https://www.curseforge.com/minecraft/mc-mods/ready-player-fun)
++ [Ready Player Fun Modrinth Page](https://modrinth.com/mod/ready-player-fun)
