@@ -11,6 +11,7 @@ import readyplayerfun.event.ServerEventListener;
 @Mod(ReadyPlayerFun.MODID)
 public class ReadyPlayerFunForge {
 
+    @SuppressWarnings("removal")
     public ReadyPlayerFunForge() {
         IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
 

@@ -1,10 +1,10 @@
 package readyplayerfun;
 
-import com.illusivesoulworks.spectrelib.config.SpectreConfig;
-import com.illusivesoulworks.spectrelib.config.SpectreConfigLoader;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import technology.roughness.whitenoise.config.WhiteNoiseConfig;
+import technology.roughness.whitenoise.config.WhiteNoiseConfigLoader;
 
 import readyplayerfun.config.ConfigHandler;
 
@@ -15,7 +15,7 @@ public class ReadyPlayerFun {
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_NAME);
    
     public static void init() {
-        SpectreConfig commonConfig = SpectreConfigLoader.add(SpectreConfig.Type.COMMON, ConfigHandler.COMMON_SPEC, MODID);
+        WhiteNoiseConfig commonConfig = WhiteNoiseConfigLoader.add(WhiteNoiseConfig.Type.COMMON, ConfigHandler.COMMON_SPEC, MODID);
         commonConfig.addLoadListener(config -> ConfigHandler.init());
     }
 

@@ -2,22 +2,15 @@ plugins {
     id 'idea'
     id 'maven-publish'
     id 'net.minecraftforge.gradle'
-    id 'org.parchmentmc.librarian.forgegradle' version '1.+'
+    id 'org.parchmentmc.librarian.forgegradle'
     id 'org.spongepowered.mixin'
+    id 'se.bjurr.gitchangelog.git-changelog-gradle-plugin'
     id 'me.modmuss50.mod-publish-plugin'
-    id 'se.bjurr.gitchangelog.git-changelog-gradle-plugin' version '1.71.8'
     id 'io.freefair.lombok'
 }
 
-repositories {
-    maven {
-        name = "C4's Maven"
-        url = "https://maven.theillusivec4.top/"
-    }
-}
-
-archivesBaseName = "${mod_id}"
 version = "${minecraft_version}-${mod_version}-FORGE"
+archivesBaseName = "${mod_id}"
 
 mixin {
     add sourceSets.main, "${mod_id}-refmap.json"
@@ -26,18 +19,12 @@ mixin {
 }
 
 minecraft {
-    mappings channel: "${mappings_channel}", version: "${mappings_version}-${minecraft_version}"
-
-    if (project.hasProperty('forge_ats_enabled') && project.findProperty('forge_ats_enabled').toBoolean()) {
-        // This location is hardcoded in Forge and can not be changed.
-        // https://github.com/MinecraftForge/MinecraftForge/blob/be1698bb1554f9c8fa2f58e32b9ab70bc4385e60/fmlloader/src/main/java/net/minecraftforge/fml/loading/moddiscovery/ModFile.java#L123
-        accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
-        project.logger.debug('Forge Access Transformers are enabled for this project.')
-    }
+    mappings channel: 'parchment', version: "${mappings_version}-${minecraft_version}"
 
     runs {
         client {
             workingDirectory project.file('run')
+            property 'forge.logging.console.level', 'debug'
             ideaModule "${rootProject.name}.${project.name}.main"
             taskName 'Client'
             property 'mixin.env.remapRefMap', 'true'
@@ -53,6 +40,7 @@ minecraft {
 
         server {
             workingDirectory project.file('run')
+            property 'forge.logging.console.level', 'debug'
             ideaModule "${rootProject.name}.${project.name}.main"
             taskName 'Server'
             property 'mixin.env.remapRefMap', 'true'
@@ -68,19 +56,17 @@ minecraft {
     }
 }
 
-sourceSets.main.resources {
-    srcDir 'src/generated/resources'
-}
+sourceSets.main.resources.srcDir 'src/generated/resources'
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     compileOnly project(":Common")
-
     annotationProcessor "org.spongepowered:mixin:${mixin_version}:processor"
 
-    implementation fg.deobf(group: 'com.illusivesoulworks.spectrelib', name: 'spectrelib-forge', version: "${spectrelib_range}")
-    jarJar fg.deobf(group: 'com.illusivesoulworks.spectrelib', name: 'spectrelib-forge', version: "${spectrelib_range}") {
-        jarJar.pin(it, "${spectrelib_version}")
+    implementation fg.deobf(group: 'technology.roughness.whitenoise', name: 'whitenoise-forge', version: "${whitenoise_version}")
+    jarJar fg.deobf(group: 'technology.roughness.whitenoise', name: 'whitenoise-forge', version: "${whitenoise_version}") {
+        jarJar.pin(it, "${whitenoise_version}")
+        jarJar.ranged(it, "${whitenoise_range}")
     }
 }
 
@@ -104,7 +90,6 @@ processResources {
     duplicatesStrategy(DuplicatesStrategy.FAIL)
     inputs.properties replaceProperties
     replaceProperties.put 'project', project
-
     filesMatching(resourceTargets) {
         expand replaceProperties
     }
@@ -131,22 +116,24 @@ publishing {
             groupId project.group
             artifactId project.archivesBaseName
             version project.version
+            // This gives us the built obfuscated version Forge requires
             artifact jar
         }
     }
     repositories {
-        maven {
-            url "file://" + System.getenv("local_maven")
+        if (System.getenv('local_maven') != null) {
+            maven {
+                url 'file://' + System.getenv('local_maven')
+            }
         }
     }
 }
 
 task changelog(type: se.bjurr.gitchangelog.plugin.gradle.GitChangelogTask) {
-    file = new File(project(":").projectDir.toString() + '/build/libs/changelog.txt');
-    templateContent = file(project(":").projectDir.toString() + '/files/templates/changelog.mustache').getText('UTF-8');
-    fromRepo = file("$projectDir");
-    toRef = "HEAD";
-    fromRef = "${minecraft_version}-${last_mod_version}";
+    file.set(new File(project(":").projectDir.toString() + '/build/libs/changelog.txt'));
+    templateContent.set(file(project(":").projectDir.toString() + '/files/templates/changelog.mustache').getText('UTF-8'));
+    toRevision.set('HEAD');
+    fromRevision.set("${minecraft_version}-${last_mod_version}");
 }
 
 def updates = tasks.register("generateUpdates", Copy) {
@@ -171,9 +158,12 @@ def publishFile = project(":").projectDir.toString() + "/Forge/build/libs/${arch
 
 publishMods {
     file = file(publishFile)
-    changelog = file(changelogFile).text
+    if (file(changelogFile).exists()) {
+        changelog = file(changelogFile).text
+    }
     type = "${release_type}".startsWith("release") ? STABLE : ("${release_type}".startsWith("beta") ? BETA : ALPHA)
     modLoaders.addAll(['forge'])
+    dryRun = providers.environmentVariable('DO_RELEASE').getOrNull() == null
 
     if (project.hasProperty('rpfcurseApiKey')) {
         curseforge {
@@ -199,7 +189,5 @@ publishMods {
             optional('hourglass')
             optional('serene-seasons')
         }
-    }
-    if (project.hasProperty('rpfGithubToken')) {
     }
 }

@@ -1,43 +1,31 @@
 plugins {
-    id 'fabric-loom'
     id 'idea'
-	id 'me.modmuss50.mod-publish-plugin'
+    id 'maven-publish'
+    id 'fabric-loom'
+    id 'me.modmuss50.mod-publish-plugin'
     id 'io.freefair.lombok'
 }
 
 version = "${minecraft_version}-${mod_version}-FABRIC"
 archivesBaseName = "${mod_id}"
 
-repositories {
-    maven {
-        url "https://maven.terraformersmc.com/releases"
-    }
-    maven {
-        url "https://maven.shedaniel.me/"
-    }
-}
-
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
     mappings(loom.layered {
         officialMojangMappings()
-		parchment("org.parchmentmc.data:parchment-${minecraft_version}:${mappings_version}@zip")
+        parchment("org.parchmentmc.data:parchment-${minecraft_version}:${mappings_version}@zip")
     })
-
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
-
-    modImplementation group: 'com.illusivesoulworks.spectrelib', name: 'spectrelib-fabric', version: "${spectrelib_range}"
-
-    modImplementation("com.terraformersmc:modmenu:${mod_menu_version}") {
-        transitive = false
-    }
-
     implementation group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.1'
     implementation project(":Common")
 
-    include group: 'com.illusivesoulworks.spectrelib', name: 'spectrelib-fabric', version: "${spectrelib_version}"
+    modImplementation group: 'technology.roughness.whitenoise', name: 'whitenoise-fabric', version: "${whitenoise_range}"
+    include group: 'technology.roughness.whitenoise', name: 'whitenoise-fabric', version: "${whitenoise_version}"
 
+    modLocalRuntime("com.terraformersmc:modmenu:${mod_menu_version}") {
+        transitive = false
+    }
 }
 
 loom {
@@ -61,20 +49,22 @@ sourceSets.main.resources {
     srcDir 'src/generated/resources'
 }
 
+def resourceTargets = ['fabric.mod.json', 'pack.mcmeta', '*.mixins.json']
+def replaceProperties = [
+    'version': version, 'fabric_mc_version_range': fabric_mc_version_range, 'license': license,
+    'mod_id': mod_id, 'mod_author': mod_author, 'mod_description': mod_description,
+    'mod_name': mod_name, 'issue_tracker': issue_tracker, 'fabric_loader_min_version': fabric_loader_min_version
+]
+
 processResources {
     from project(":Common").sourceSets.main.resources
-    inputs.property "version", project.version
-    exclude '.cache'
     duplicatesStrategy(DuplicatesStrategy.FAIL)
+    inputs.properties replaceProperties
+    replaceProperties.put 'project', project
+    exclude '.cache'
 
-    filesMatching("fabric.mod.json") {
-        expand 'version': project.version, 'fabric_mc_version_range': project.fabric_mc_version_range, 'license': project.license,
-                'mod_id': project.mod_id, 'mod_author': project.mod_author, 'mod_description': project.mod_description,
-                'mod_name': project.mod_name, 'issue_tracker': project.issue_tracker, 'fabric_loader_min_version': fabric_loader_min_version
-    }
-
-    filesMatching("pack.mcmeta") {
-        expand 'mod_name': project.mod_name
+    filesMatching(resourceTargets) {
+        expand replaceProperties
     }
 }
 
@@ -87,9 +77,12 @@ def publishFile = project(":").projectDir.toString() + "/Fabric/build/libs/${arc
 
 publishMods {
     file = file(publishFile)
-    changelog = file(changelogFile).text
+    if (file(changelogFile).exists()) {
+        changelog = file(changelogFile).text
+    }
     type = "${release_type}".startsWith("release") ? STABLE : ("${release_type}".startsWith("beta") ? BETA : ALPHA)
-    modLoaders.add('fabric')
+    modLoaders.addAll(['fabric'])
+    dryRun = providers.environmentVariable('DO_RELEASE').getOrNull() == null
 
     if (project.hasProperty('rpfcurseApiKey')) {
         curseforge {
@@ -99,7 +92,6 @@ publishMods {
             clientRequired = false
             serverRequired = true
             minecraftVersions.addAll("${release_versions}".split(','))
-            embeds('spectrelib')
             requires('fabric-api')
             optional('betterdays')
             optional('serene-seasons')
@@ -114,7 +106,5 @@ publishMods {
             optional('betterdays')
             optional('serene-seasons')
         }
-    }
-    if (project.hasProperty('rpfGithubToken')) {
     }
 }
