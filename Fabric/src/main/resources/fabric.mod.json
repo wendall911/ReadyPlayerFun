@@ -18,7 +18,7 @@
     "main": [
       "readyplayerfun.ReadyPlayerFunFabric"
     ],
-    "spectrelib-config": [
+    "whitenoise-config": [
       "readyplayerfun.FabricConfigInitializer"
     ]
   },

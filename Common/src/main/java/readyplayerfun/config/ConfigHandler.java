@@ -1,17 +1,17 @@
 package readyplayerfun.config;
 
-import com.illusivesoulworks.spectrelib.config.SpectreConfigSpec;
-
 import org.apache.commons.lang3.tuple.Pair;
+
+import technology.roughness.whitenoise.config.WhiteNoiseConfigSpec;
 
 public class ConfigHandler {
 
-    public static final SpectreConfigSpec COMMON_SPEC;
+    public static final WhiteNoiseConfigSpec COMMON_SPEC;
 
     private static final Common COMMON;
 
     static {
-        final Pair<Common, SpectreConfigSpec> specPairCommon = new SpectreConfigSpec.Builder().configure(Common::new);
+        final Pair<Common, WhiteNoiseConfigSpec> specPairCommon = new WhiteNoiseConfigSpec.Builder().configure(Common::new);
 
         COMMON_SPEC = specPairCommon.getRight();
         COMMON = specPairCommon.getLeft();
@@ -21,10 +21,10 @@ public class ConfigHandler {
 
     public static class Common {
 
-        private final SpectreConfigSpec.BooleanValue enableWelcomeMessage;
-        private final SpectreConfigSpec.IntValue pauseWhileEmptySeconds;
+        private final WhiteNoiseConfigSpec.BooleanValue enableWelcomeMessage;
+        private final WhiteNoiseConfigSpec.IntValue pauseWhileEmptySeconds;
 
-        public Common(SpectreConfigSpec.Builder builder) {
+        public Common(WhiteNoiseConfigSpec.Builder builder) {
             builder.push("Server");
 
             enableWelcomeMessage = builder.comment("Show status message on first player login after server unpaused.")
