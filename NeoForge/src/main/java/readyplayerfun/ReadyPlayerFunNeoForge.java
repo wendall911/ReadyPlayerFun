@@ -12,7 +12,7 @@ public class ReadyPlayerFunNeoForge {
 
     public ReadyPlayerFunNeoForge(IEventBus eventBus) {
         eventBus.addListener(this::setup);
-        ReadyPlayerFun.init();
+        ReadyPlayerFun.initConfig();
     }
 
     private void setup(final FMLCommonSetupEvent event) {
