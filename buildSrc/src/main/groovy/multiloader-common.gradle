@@ -17,7 +17,6 @@ java {
 
 repositories {
     mavenCentral()
-    mavenLocal()
     // https://docs.gradle.org/current/userguide/declaring_repositories.html#declaring_content_exclusively_found_in_one_repository
     exclusiveContent {
         forRepository {
@@ -44,13 +43,8 @@ repositories {
     }
 
     maven {
-        name = 'TerraformersMC (Trinkets)'
+        name = 'TerraformersMC (Trinkets / Mod Menu)'
         url = 'https://maven.terraformersmc.com/'
-    }
-
-    maven {
-        name = 'Illusive Soulworks'
-        url = 'https://maven.theillusivec4.top/'
     }
 
     maven {
@@ -61,7 +55,12 @@ repositories {
         }
     }
 
-    if (project.hasProperty('localmaven')) {
+    maven {
+        name = 'WhiteNoise' // Library for wendall911 mods
+        url = 'https://raw.githubusercontent.com/wendall911/maven/main/'
+    }
+
+    if (System.getenv('local_maven') != null && project.hasProperty('localmaven')) {
         maven {
             url 'file://' + localmaven
         }
@@ -81,14 +80,14 @@ repositories {
 }
 
 sourcesJar {
-    from(rootProject.file("LICENSE"))
-    from(rootProject.file("README.md"))
+    from(rootProject.file('LICENSE'))
+    from(rootProject.file('README.md'))
     from(rootProject.file('build/libs/changelog.txt'))
 }
 
 jar {
-    from(rootProject.file("LICENSE"))
-    from(rootProject.file("README.md"))
+    from(rootProject.file('LICENSE'))
+    from(rootProject.file('README.md'))
     from(rootProject.file('build/libs/changelog.txt'))
     manifest {
         attributes([
@@ -99,7 +98,7 @@ jar {
             'Implementation-Version'  : project.jar.archiveVersion,
             'Implementation-Vendor'   : mod_author,
             'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
-            'Timestamp'              : System.currentTimeMillis(),
+            'Timestamp'               : System.currentTimeMillis(),
             'Built-On-Java'           : "${System.getProperty('java.vm.version')} (${System.getProperty('java.vm.vendor')})",
             'Build-On-Minecraft'      : minecraft_version
         ])
@@ -118,13 +117,12 @@ processResources {
         'mod_description': mod_description,
         'mod_name': mod_name,
         'mod_credits': mod_credits,
+        'mod_url': mod_url,
         'issue_tracker': issue_tracker,
         'mod_update_branch': mod_update_branch,
-        'mod_url': mod_url,
-        'fabric_loader_version': fabric_loader_version,
+        'minecraft_version': minecraft_version,
         'fabric_loader_min_version': fabric_loader_min_version,
         'fabric_mc_version_range': fabric_mc_version_range,
-        'minecraft_version': minecraft_version,
         'neoforge_loader_version_range': neoforge_loader_version_range,
         'neoforge_mc_version_range': neoforge_mc_version_range
     ]
