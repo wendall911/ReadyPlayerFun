@@ -36,6 +36,10 @@ public class ServerEventHander {
             long duration = System.currentTimeMillis() - worldState.getStartPauseTime();
             String durationString = DurationFormatUtils.formatDuration(duration, "H:mm:ss", true);
 
+            if (duration == 0) {
+                return;
+            }
+
             if (ConfigHandler.Common.enableWelcomeMessage()) {
                 String msg = String.format(ConfigHandler.Common.welcomeMessage(), durationString);
                 Component message = Component.translatable(msg);
