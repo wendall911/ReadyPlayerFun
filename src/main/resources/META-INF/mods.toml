@@ -1,19 +1,21 @@
 modLoader="javafml"
 loaderVersion="${forge_version_range}"
-license="MIT"
+license="${license}"
+logoBlur=false
+issueTrackerURL="${issue_tracker}"
+logoFile="${mod_id}_icon.png"
 
 [[mods]]
-  modId="readyplayerfun"
-  displayName="Ready Player Fun"
-  description="Pause time and seasons when no players are logged in."
-  version="${version}"
-  displayURL="https://github.com/wendall911/ReadyPlayerFun"
-  updateJSONURL="https://raw.githubusercontent.com/wendall911/ReadyPlayerFun/1.18.x/files/updates.json"
-  authors="wendall911"
-  credits="ashar42"
-  logoFile="logo.png"
-
-[[dependencies.readyplayerfun]]
+    modId="${mod_id}"
+    version="${version}"
+    displayName="${mod_name}"
+    updateJSONURL="https://raw.githubusercontent.com/wendall911/ReadyPlayerFun/${mod_update_branch}/files/updates.json"
+    authors="${mod_author}"
+    credits="${mod_credits}"
+    description='''
+    ${mod_description}
+    '''
+[[dependencies.${mod_id}]]
     modId="forge"
     mandatory=true
     versionRange="${forge_version_range}"
