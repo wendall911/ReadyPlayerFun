@@ -6,7 +6,8 @@ plugins {
     id 'io.freefair.lombok'
 }
 
-version = "${minecraft_version}-${mod_version}-FABRIC"
+def actualVersion = version
+version = "${minecraft_version}-${version}-FABRIC"
 archivesBaseName = "${mod_id}"
 
 dependencies {
@@ -20,8 +21,8 @@ dependencies {
     implementation group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.1'
     implementation project(":Common")
 
-    modImplementation group: 'technology.roughness.whitenoise', name: 'whitenoise-fabric', version: "${whitenoise_range}"
-    include group: 'technology.roughness.whitenoise', name: 'whitenoise-fabric', version: "${whitenoise_version}"
+    modImplementation group: 'technology.roughness.whitenoise', name: "whitenoise-${minecraft_version}-fabric", version: "${whitenoise_range}"
+    include group: 'technology.roughness.whitenoise', name: "whitenoise-${minecraft_version}-fabric", version: "${whitenoise_version}"
 
     modLocalRuntime("com.terraformersmc:modmenu:${mod_menu_version}") {
         transitive = false
@@ -51,9 +52,10 @@ sourceSets.main.resources {
 
 def resourceTargets = ['fabric.mod.json', 'pack.mcmeta', '*.mixins.json']
 def replaceProperties = [
-    'version': version, 'fabric_mc_version_range': fabric_mc_version_range, 'license': license,
+    'version': actualVersion, 'fabric_mc_version_range': fabric_mc_version_range, 'license': license,
     'mod_id': mod_id, 'mod_author': mod_author, 'mod_description': mod_description,
-    'mod_name': mod_name, 'issue_tracker': issue_tracker, 'fabric_loader_min_version': fabric_loader_min_version
+    'mod_name': mod_name, 'issue_tracker': issue_tracker, 'fabric_loader_min_version': fabric_loader_min_version,
+    'java_version': java_version
 ]
 
 processResources {
