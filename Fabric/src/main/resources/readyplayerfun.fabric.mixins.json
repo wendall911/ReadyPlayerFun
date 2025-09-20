@@ -7,7 +7,8 @@
     "MixinCommands",
     "MixinPlayerList",
     "MinecraftServerMixin",
-    "MinecraftServerAccessor"
+    "MinecraftServerAccessor",
+    "DedicatedServerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
