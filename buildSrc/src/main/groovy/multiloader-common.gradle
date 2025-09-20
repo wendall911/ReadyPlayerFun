@@ -7,7 +7,7 @@ plugins {
 }
 
 base {
-    archivesName = "${mod_id}-${project.name}-${minecraft_version}"
+    archivesName = "${mod_id}-${minecraft_version}"
 }
 
 java {
@@ -109,8 +109,6 @@ processResources {
     def expandProps = [
         'version': version,
         'java_version': java_version,
-        'neoforge_mod_version': neoforge_mod_version,
-        'fabric_mod_version': fabric_mod_version,
         'license': license,
         'mod_id': mod_id,
         'mod_author': mod_author,
