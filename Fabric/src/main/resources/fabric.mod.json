@@ -11,22 +11,23 @@
     "${mod_credits}"
   ],
   "contact": {
-    "issues": "${issue_tracker}",
-    "homepage": "${mod_url}"
+    "homepage": "https://github.com/${mod_author}/${mod_name}",
+    "issues": "https://github.com/${mod_author}/${mod_name}/issues",
+    "sources": "https://github.com/${mod_author}/${mod_name}"
   },
   "license": "${license}",
   "icon": "${mod_id}_icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
-      "readyplayerfun.ReadyPlayerFunFabric"
+      "${mod_id}.${mod_name}Fabric"
     ],
     "whitenoise-config": [
-      "readyplayerfun.FabricConfigInitializer"
+      "${mod_id}.FabricConfigInitializer"
     ]
   },
   "mixins": [
-    "readyplayerfun.fabric.mixins.json"
+    "${mod_id}.fabric.mixins.json"
   ],
   "depends": {
     "fabricloader": "${fabric_loader_min_version}",
