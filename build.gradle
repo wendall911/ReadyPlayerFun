@@ -24,10 +24,10 @@ subprojects {
     java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
     jar {
-        from(rootProject.file("LICENSE"))
-        from(rootProject.file("COPYING"))
-        from(rootProject.file("COPYING.LESSER"))
-        from(rootProject.file("README.md"))
+        from(rootProject.file('LICENSE'))
+        from(rootProject.file('COPYING'))
+        from(rootProject.file('COPYING.LESSER'))
+        from(rootProject.file('README.md'))
         from(rootProject.file('files/changelog.txt'))
         manifest {
             attributes([
