@@ -28,8 +28,8 @@ public class ServerEventHander {
     }
 
     public static void onPlayerJoin(ServerPlayer sp) {
-        PlayerList playerList = Objects.requireNonNull(sp.getServer()).getPlayerList();
-        ServerLevel level = sp.getServer().overworld();
+        PlayerList playerList = Objects.requireNonNull(sp.level().getServer()).getPlayerList();
+        ServerLevel level = sp.level().getServer().overworld();
         WorldState worldState = getWorldState(level);
 
         if (playerList.getPlayerCount() >= 1 && worldState.isPaused()) {

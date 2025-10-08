@@ -10,13 +10,13 @@ dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
     mappings(loom.layered {
         officialMojangMappings()
-        parchment("org.parchmentmc.data:parchment-${minecraft_version}:${mappings_version}@zip")
+        parchment("org.parchmentmc.data:parchment-${mappings_minecraft_version}:${mappings_version}@zip")
     })
 
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
 
-    modImplementation group: 'technology.roughness.whitenoise', name: "whitenoise-${minecraft_version}-fabric", version: "${whitenoise_range}"
+    modImplementation group: 'technology.roughness.whitenoise', name: "whitenoise-${minecraft_version}-fabric", version: "${whitenoise_version}"
     include group: 'technology.roughness.whitenoise', name: "whitenoise-${minecraft_version}-fabric", version: "${whitenoise_version}"
 
     modLocalRuntime group: 'com.terraformersmc', name: 'modmenu', version: "${mod_menu_version}"

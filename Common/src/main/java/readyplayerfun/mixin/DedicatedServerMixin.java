@@ -12,7 +12,7 @@ import readyplayerfun.config.ConfigHandler;
 @Mixin(DedicatedServer.class)
 public abstract class DedicatedServerMixin {
 
-    @Inject(method = "pauseWhileEmptySeconds", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "pauseWhenEmptySeconds", at = @At("HEAD"), cancellable = true)
     private void rpf$onSetPauseWhileEmptySeconds(CallbackInfoReturnable<Integer> cir) {
         cir.setReturnValue(ConfigHandler.Common.pauseWhileEmptySeconds());
     }
