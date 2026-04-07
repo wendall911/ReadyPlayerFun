@@ -44,7 +44,7 @@ public class ServerEventHander {
                 String msg = String.format(ConfigHandler.Common.welcomeMessage(), durationString);
                 Component message = Component.translatable(msg);
 
-                sp.displayClientMessage(message, true);
+                sp.sendSystemMessage(message, true);
             }
 
             unpauseServer(String.format("onPlayerLogin, %s", durationString), level);
@@ -72,7 +72,7 @@ public class ServerEventHander {
 
         worldState.setStartPauseTime(System.currentTimeMillis());
         worldState.setGameTime(level.getGameTime());
-        worldState.setDayTime(level.getDayTime());
+        worldState.setDayTime(level.getDefaultClockTime());
 
         ReadyPlayerFun.LOGGER.info(
             String.format("%s rule set, pausing server at %d, %d", ctx, worldState.getGameTime(), worldState.getDayTime()));
@@ -84,7 +84,7 @@ public class ServerEventHander {
         WorldState worldState = getWorldState(level);
 
         ReadyPlayerFun.LOGGER.info(
-            String.format("Unpausing server: %s at %d, %d", ctx, level.getGameTime(), level.getDayTime()));
+            String.format("Unpausing server: %s at %d, %d", ctx, level.getGameTime(), level.getDefaultClockTime()));
 
         worldState.setPaused(false);
     }
