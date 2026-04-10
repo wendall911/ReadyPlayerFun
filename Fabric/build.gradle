@@ -15,7 +15,7 @@ dependencies {
     implementation group: 'technology.roughness.whitenoise', name: "whitenoise-${minecraft_version}-fabric", version: "${whitenoise_version}"
     include group: 'technology.roughness.whitenoise', name: "whitenoise-${minecraft_version}-fabric", version: "${whitenoise_version}"
 
-    runtimeOnly group: 'com.terraformersmc', name: 'modmenu', version: "${mod_menu_version}"
+    localRuntime group: 'com.terraformersmc', name: 'modmenu', version: "${mod_menu_version}"
 }
 
 loom {
@@ -66,6 +66,8 @@ publishMods {
             optional('charged-charms')
             optional('creeper-fireworks')
             optional('homeostatic')
+            optional('homeostatic-seasons')
+            optional('mobchampions')
             optional('simpletextoverlay')
             optional('serene-seasons')
         }
@@ -81,6 +83,8 @@ publishMods {
             optional('charged-charms')
             optional('creeper-fireworks-mod')
             optional('homeostatic')
+            optional('homeostatic-seasons')
+            optional('mobchampions')
             optional('simpletextoverlay')
             optional('serene-seasons')
         }
@@ -101,7 +105,7 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             groupId project.group
-            artifactId identifier
+            artifactId "${mod_id}-${minecraft_version}-fabric"
             version project.version
             from components.java
         }
