@@ -69,6 +69,7 @@ publishMods {
             optional('homeostatic-seasons')
             optional('mobchampions')
             optional('simpletextoverlay')
+            optional('survivalist-essentials')
             optional('serene-seasons')
         }
     }
@@ -86,6 +87,7 @@ publishMods {
             optional('homeostatic-seasons')
             optional('mobchampions')
             optional('simpletextoverlay')
+            optional('survivalist-essentials')
             optional('serene-seasons')
         }
     }
