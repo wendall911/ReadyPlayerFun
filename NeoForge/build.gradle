@@ -1,9 +1,9 @@
 plugins {
     id 'multiloader-loader'
     id 'net.neoforged.moddev'
-    id 'io.github.goooler.shadow'
 }
 
+def identifier = "${mod_id}-${minecraft_version}-neoforge"
 def modLoader = "${project.name}".toUpperCase()
 def actualVersion = version
 version = "${version}-${modLoader}"
@@ -24,7 +24,6 @@ neoForge {
         }
         server {
             server()
-            programArgument '--nogui'
         }
     }
     mods {
@@ -39,12 +38,8 @@ dependencies {
     jarJar group: 'technology.roughness.whitenoise', name: "whitenoise-${minecraft_version}-neoforge", version: "${whitenoise_version}"
 }
 
-shadowJar {
-    archiveClassifier = ''
-}
-
 def changelogFile = project(":").projectDir.toString() + '/build/libs/changelog.txt'
-def publishFile = project(":").projectDir.toString() + "/NeoForge/build/libs/${archivesBaseName}-${version}.jar"
+def publishFile = project(":").projectDir.toString() + "/NeoForge/build/libs/${identifier}-${version}.jar"
 def display_name = "${project.name} ${minecraft_version}-${version}"
 def display_version = "${minecraft_version}-${version}"
 

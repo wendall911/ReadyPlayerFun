@@ -6,7 +6,7 @@ plugins {
     id 'se.bjurr.gitchangelog.git-changelog-gradle-plugin'
 }
 
-archivesBaseName = "${mod_id}-common"
+def identifier = "${mod_id}-${minecraft_version}-common"
 
 neoForge {
     neoFormVersion = neo_form_version
