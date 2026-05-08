@@ -15,8 +15,7 @@ public class ReadyPlayerFun {
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_NAME);
    
     public static void initConfig() {
-        WhiteNoiseConfig commonConfig = WhiteNoiseConfigLoader.add(WhiteNoiseConfig.Type.COMMON, ConfigHandler.COMMON_SPEC, MODID);
-        commonConfig.addLoadListener((config, flag) -> ConfigHandler.init());
+        WhiteNoiseConfigLoader.add(WhiteNoiseConfig.Type.COMMON, ConfigHandler.COMMON_SPEC, MODID);
     }
 
 }
