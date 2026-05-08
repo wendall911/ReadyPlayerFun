@@ -17,8 +17,6 @@ public class ConfigHandler {
         COMMON = specPairCommon.getLeft();
     }
 
-    public static void init() {}
-
     public static class Common {
 
         private final WhiteNoiseConfigSpec.BooleanValue enableWelcomeMessage;
